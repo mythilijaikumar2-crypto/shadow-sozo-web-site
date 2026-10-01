@@ -30,10 +30,52 @@ export const StoryText: React.FC<StoryTextProps> = ({ progress }) => {
   // Scene 3: 25% -> 42% (Turn vision into experience)
   const scene3 = getSceneState(0.25, 0.28, 0.38, 0.42);
 
-  // Scene 4: 42% -> 62% (Staggered DESIGN, DEVELOP, GROW)
-  const scene4Word1 = getSceneState(0.42, 0.45, 0.59, 0.62);
-  const scene4Word2 = getSceneState(0.47, 0.50, 0.59, 0.62);
-  const scene4Word3 = getSceneState(0.52, 0.55, 0.59, 0.62);
+  // Scene 4 Overall Base Container State (42% -> 62%)
+  const scene4Base = getSceneState(0.42, 0.45, 0.59, 0.62);
+
+  // Scene 4 Mathematical Item Emphasis (NO CSS duration delay)
+  const getScene4ItemState = (activeStart: number, activeEnd: number) => {
+    if (progress < 0.42 || progress > 0.62) {
+      return {
+        style: {
+          opacity: 0.35,
+          borderColor: 'rgba(255, 255, 255, 0.1)',
+          transform: 'scale(0.98)',
+        } as React.CSSProperties,
+        isGold: false,
+      };
+    }
+
+    let emphasis = 0;
+    const mid = (activeStart + activeEnd) / 2;
+    const halfWidth = (activeEnd - activeStart) / 2;
+    const distFromMid = Math.abs(progress - mid);
+
+    if (progress >= activeStart && progress <= activeEnd) {
+      emphasis = 1 - Math.min(1, distFromMid / halfWidth);
+    } else if (progress < activeStart && activeStart === 0.42) {
+      emphasis = Math.max(0, (progress - 0.42) / 0.03);
+    }
+
+    const opacity = 0.35 + emphasis * 0.65;
+    const scale = 0.98 + emphasis * 0.04; // 0.98 -> 1.02
+    const blur = (1 - emphasis) * 2; // 2px -> 0px
+    const isGold = emphasis > 0.3;
+
+    return {
+      style: {
+        opacity,
+        transform: `scale(${scale})`,
+        filter: `blur(${blur}px)`,
+        borderColor: isGold ? 'rgba(212, 175, 55, 0.7)' : 'rgba(255, 255, 255, 0.12)',
+      } as React.CSSProperties,
+      isGold,
+    };
+  };
+
+  const scene4Item1 = getScene4ItemState(0.42, 0.49);
+  const scene4Item2 = getScene4ItemState(0.49, 0.55);
+  const scene4Item3 = getScene4ItemState(0.55, 0.60);
 
   // Scene 5: 62% -> 78% (Don't stay where you started)
   const scene5 = getSceneState(0.62, 0.65, 0.74, 0.78);
@@ -118,45 +160,63 @@ export const StoryText: React.FC<StoryTextProps> = ({ progress }) => {
       </div>
 
       {/* ====================================================
-          SCENE 04: 42% -> 62% (Staggered: DESIGN. DEVELOP. GROW.)
+          SCENE 04: 42% -> 62% (Hybrid Editorial Studio Pillars)
          ==================================================== */}
-      <div className="flex flex-col items-center justify-center gap-4 sm:gap-6 w-full min-h-[220px] sm:min-h-[280px]">
-        {(scene4Word1.active || scene4Word2.active || scene4Word3.active) && (
-          <div className="flex flex-col items-center justify-center gap-5 sm:gap-8 w-full">
-            <span className="font-mono text-[10px] sm:text-xs tracking-[0.4em] text-gold uppercase px-3.5 py-1.5 rounded-full border border-gold/30 bg-black/50 backdrop-blur-md">
-              03 // CRAFT
-            </span>
+      <div
+        style={scene4Base.style}
+        className="flex flex-col items-center justify-center gap-6 sm:gap-8 w-full max-w-3xl min-h-[320px]"
+      >
+        {/* Subtle Studio Label */}
+        <span className="font-mono text-[10px] sm:text-xs tracking-[0.35em] text-silver/60 uppercase">
+          SHADOW SOZO // WHAT WE BUILD
+        </span>
 
-            <div className="flex flex-col md:flex-row items-center justify-center gap-4 sm:gap-6 md:gap-8 lg:gap-12 font-display text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-[0.15em] uppercase leading-none drop-shadow-cinematic">
-              <div
-                style={scene4Word1.style}
-                className="transition-all duration-300 inline-flex items-center justify-center"
-              >
-                <span className="text-white hover:text-gold transition-colors">
-                  DESIGN.
-                </span>
-              </div>
-
-              <div
-                style={scene4Word2.style}
-                className="transition-all duration-300 inline-flex items-center justify-center"
-              >
-                <span className="text-silver-gradient">
-                  DEVELOP.
-                </span>
-              </div>
-
-              <div
-                style={scene4Word3.style}
-                className="transition-all duration-300 inline-flex items-center justify-center"
-              >
-                <span className="text-gold-gradient drop-shadow-gold">
-                  GROW.
-                </span>
-              </div>
-            </div>
+        {/* Editorial Pillars List */}
+        <div className="flex flex-col gap-5 sm:gap-7 w-full text-left">
+          
+          {/* Item 01: DESIGN. */}
+          <div
+            style={scene4Item1.style}
+            className="border-l-2 pl-5 sm:pl-7"
+          >
+            <span className="font-mono text-xs sm:text-sm tracking-[0.3em] text-gold">01</span>
+            <h3 className="font-display text-3xl sm:text-5xl md:text-6xl font-black text-white tracking-[0.12em] uppercase leading-none mt-1">
+              DESIGN.
+            </h3>
+            <p className="text-xs sm:text-sm text-silver/80 font-sans tracking-widest mt-1.5">
+              Architecting Visual Identities
+            </p>
           </div>
-        )}
+
+          {/* Item 02: DEVELOP. */}
+          <div
+            style={scene4Item2.style}
+            className="border-l-2 pl-5 sm:pl-7"
+          >
+            <span className="font-mono text-xs sm:text-sm tracking-[0.3em] text-gold">02</span>
+            <h3 className="font-display text-3xl sm:text-5xl md:text-6xl font-black text-white tracking-[0.12em] uppercase leading-none mt-1">
+              DEVELOP.
+            </h3>
+            <p className="text-xs sm:text-sm text-silver/80 font-sans tracking-widest mt-1.5">
+              Engineering High-Tech Systems
+            </p>
+          </div>
+
+          {/* Item 03: GROW. */}
+          <div
+            style={scene4Item3.style}
+            className="border-l-2 pl-5 sm:pl-7"
+          >
+            <span className="font-mono text-xs sm:text-sm tracking-[0.3em] text-gold">03</span>
+            <h3 className="font-display text-3xl sm:text-5xl md:text-6xl font-black text-white tracking-[0.12em] uppercase leading-none mt-1">
+              GROW.
+            </h3>
+            <p className="text-xs sm:text-sm text-silver/80 font-sans tracking-widest mt-1.5">
+              Scaling Digital Experiences
+            </p>
+          </div>
+
+        </div>
       </div>
 
       {/* ====================================================

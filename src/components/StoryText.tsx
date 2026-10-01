@@ -56,7 +56,7 @@ export const StoryText: React.FC<StoryTextProps> = ({ progress }) => {
          ==================================================== */}
       <div
         style={scene1.style}
-        className="flex flex-col items-center justify-center gap-4 sm:gap-6 transition-all duration-300"
+        className="flex flex-col items-center justify-center gap-4 sm:gap-6 transition-all duration-300 mt-8 sm:mt-14 md:mt-20"
       >
         {/* Micro Credibility Label */}
         <span className="font-mono text-[10px] sm:text-xs tracking-[0.35em] text-gold uppercase px-4 py-1.5 rounded-full border border-gold/30 bg-black/60 backdrop-blur-md shadow-gold-glow">

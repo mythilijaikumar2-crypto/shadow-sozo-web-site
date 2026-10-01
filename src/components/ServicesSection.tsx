@@ -79,7 +79,6 @@ const SERVICES = [
   },
 ] as const;
 
-
 const STRATEGY_WORDS = ['STRATEGY.', 'DESIGN.', 'DEVELOPMENT.', 'GROWTH.'];
 const DDG_WORDS = ['DESIGN.', 'DEVELOP.', 'GROW.'];
 const CTA_WORDS = ['LET\'S', 'BUILD', 'SOMETHING', 'THAT\u00A0MOVES.'];
@@ -88,6 +87,11 @@ const CTA_WORDS = ['LET\'S', 'BUILD', 'SOMETHING', 'THAT\u00A0MOVES.'];
 function pb(p: number, start: number, end: number) {
   return Math.max(0, Math.min(1, (p - start) / (end - start)));
 }
+function mapRange(val: number, inMin: number, inMax: number, outMin: number, outMax: number): number {
+  if (inMax === inMin) return outMin;
+  const t = Math.max(0, Math.min(1, (val - inMin) / (inMax - inMin)));
+  return outMin + (outMax - outMin) * t;
+}
 function ss(el: HTMLElement | null, css: Partial<CSSStyleDeclaration>) {
   if (el) Object.assign(el.style, css);
 }
@@ -95,34 +99,25 @@ function splitLetters(text: string): string[] {
   return text.split('');
 }
 
-/* ─── PROGRESS ZONES ────────────────────────────────────────── */
+/* ─── PROGRESS ZONES FOR SERVICES ───────────────────────────── */
+// Global Section Progress:
 // 0.00–0.07  intro (03 + SERVICES)
 // 0.07–0.16  opening headline (WE BUILD WHAT MOVES BRANDS FORWARD.)
 // 0.16–0.22  WHAT WE DO
-// 0.22–0.40  SERVICE 01
-// 0.40–0.56  SERVICE 02
-// 0.56–0.72  SERVICE 03
-// 0.72–0.86  SERVICE 04
+// 0.22–0.38  SERVICE 01
+// 0.38–0.54  SERVICE 02
+// 0.54–0.70  SERVICE 03
+// 0.70–0.86  SERVICE 04
 // 0.86–0.92  ONE IDEA / STRATEGY...
 // 0.92–0.96  DESIGN. DEVELOP. GROW.
 // 0.96–1.00  CTA + LOGO
 
-const SVC_ZONES = [
-  { enter: 0.22, reveal: 0.24, hold: 0.36, exit: 0.40 },
-  { enter: 0.40, reveal: 0.42, hold: 0.52, exit: 0.56 },
-  { enter: 0.56, reveal: 0.58, hold: 0.68, exit: 0.72 },
-  { enter: 0.72, reveal: 0.74, hold: 0.83, exit: 0.86 },
+const SVC_RANGES = [
+  { start: 0.22, end: 0.38 },
+  { start: 0.38, end: 0.54 },
+  { start: 0.54, end: 0.70 },
+  { start: 0.70, end: 0.86 },
 ];
-
-/* ─── SERVICE OPACITY ────────────────────────────────────────── */
-function serviceOpacity(p: number, idx: number): number {
-  const z = SVC_ZONES[idx];
-  if (p < z.enter - 0.04) return 0.45;
-  if (p < z.enter) return 0.45 + pb(p, z.enter - 0.04, z.enter) * 0.55;
-  if (p <= z.hold) return 1.0;
-  if (p < z.exit) return 1.0 - pb(p, z.hold, z.exit) * 0.6;
-  return 0.40;
-}
 
 /* ─── COMPONENT ─────────────────────────────────────────────── */
 export const ServicesSection: React.FC = () => {
@@ -130,7 +125,6 @@ export const ServicesSection: React.FC = () => {
 
   /* Intro refs */
   const tagNumRef  = useRef<HTMLSpanElement>(null);
-
   const tagLetRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const hwRefs     = useRef<(HTMLSpanElement | null)[]>([]);
   const sublineRef = useRef<HTMLParagraphElement>(null);
@@ -172,7 +166,7 @@ export const ServicesSection: React.FC = () => {
 
     /* ── REDUCED MOTION: show all immediately ─────────────── */
     if (prefersReduced) {
-      section.querySelectorAll('[data-animate]').forEach(el => {
+      section.querySelectorAll('[data-animate], [data-service-article]').forEach(el => {
         (el as HTMLElement).style.opacity = '1';
         (el as HTMLElement).style.transform = 'none';
         (el as HTMLElement).style.filter = 'none';
@@ -195,7 +189,7 @@ export const ServicesSection: React.FC = () => {
     ss(wwdDescRef.current, { opacity: '0', transform: 'translateY(10px)' });
 
     SERVICES.forEach((_s, i) => {
-      ss(svcRefs.current[i], { opacity: '0.40' });
+      ss(svcRefs.current[i], { opacity: '0.35', transform: 'translateY(20px) scale(0.98)' });
       ss(svcNumRefs.current[i], { color: '#94A3B8' });
       svcTitleRefs.current[i].forEach(el =>
         ss(el, { opacity: '0', transform: 'translateY(20px)', filter: 'blur(2px)' })
@@ -261,53 +255,143 @@ export const ServicesSection: React.FC = () => {
           ss(wwdSubRef.current, { opacity: String(wwdSub), transform: `translateY(${12 * (1 - wwdSub)}px)` });
           ss(wwdDescRef.current, { opacity: String(wwdDsc), transform: `translateY(${10 * (1 - wwdDsc)}px)` });
 
-          /* ─ 4. SERVICES ─ */
-          const opacities = SERVICES.map((_, i) => serviceOpacity(p, i));
-          const maxOp = Math.max(...opacities);
-          const activeIdx = opacities.findIndex(o => o === maxOp);
+          /* ─ 4. SERVICES ANIMATION SEQUENCING ─ */
+          let currentActiveIdx = 0;
 
           SERVICES.forEach((_s, i) => {
-            const z     = SVC_ZONES[i];
-            const op    = opacities[i];
-            const isAct = i === activeIdx;
+            const z = SVC_RANGES[i];
+            const sp = mapRange(p, z.start, z.end, 0, 1);
 
-            ss(svcRefs.current[i], { opacity: String(op) });
+            // Phase ranges for sp (0.00 -> 1.00):
+            // 0.00 -> 0.08: ENTER
+            // 0.08 -> 0.25: TITLE REVEAL
+            // 0.25 -> 0.36: TAGLINE REVEAL
+            // 0.36 -> 0.52: SERVICE LIST REVEAL
+            // 0.52 -> 0.62: DESCRIPTION REVEAL
+            // 0.62 -> 0.88: READING HOLD (100% visible, static)
+            // 0.88 -> 1.00: EXIT / TRANSITION
+
+            let artOp = 0.35;
+            let artY = 20;
+            let artScale = 0.98;
+
+            if (p >= z.start - 0.04 && p < z.start) {
+              const ep = mapRange(p, z.start - 0.04, z.start, 0, 1);
+              artOp = 0.35 + ep * 0.10;
+              artY = 20 * (1 - ep);
+              artScale = 0.98 + ep * 0.01;
+            } else if (sp >= 0 && sp < 0.08) {
+              const ep = mapRange(sp, 0, 0.08, 0, 1);
+              artOp = 0.45 + ep * 0.55;
+              artY = 0;
+              artScale = 0.99 + ep * 0.01;
+            } else if (sp >= 0.08 && sp <= 0.88) {
+              artOp = 1.0;
+              artY = 0;
+              artScale = 1.0;
+              currentActiveIdx = i;
+            } else if (sp > 0.88) {
+              const exitP = mapRange(sp, 0.88, 1.00, 0, 1);
+              artOp = 1.0 - exitP * 0.65; // 1.0 -> 0.35
+              artY = -20 * exitP;
+              artScale = 1.0 - exitP * 0.02;
+            } else if (p >= z.end) {
+              artOp = 0.35;
+              artY = -20;
+              artScale = 0.98;
+            }
+
+            ss(svcRefs.current[i], {
+              opacity: String(artOp),
+              transform: `translateY(${artY}px) scale(${artScale})`,
+            });
+
+            const isAct = sp >= 0.08 && sp <= 0.88;
             ss(svcNumRefs.current[i], { color: isAct ? '#D4AF37' : '#94A3B8' });
             ss(svcDivRefs.current[i], {
               backgroundColor: isAct ? 'rgba(212,175,55,0.80)' : 'rgba(255,255,255,0.10)',
             });
 
-            /* Title letters reveal on enter */
-            svcTitleRefs.current[i].forEach((el, li) => {
-              const total = svcTitleRefs.current[i].length;
-              const lp = pb(p, z.reveal + (li / total) * 0.04, z.reveal + (li / total) * 0.04 + 0.025);
+            /* TITLE LETTERS REVEAL (0.08 -> 0.25) */
+            const titleP = mapRange(sp, 0.08, 0.25, 0, 1);
+            const letters = svcTitleRefs.current[i];
+            const totalL = letters.length;
+            letters.forEach((el, li) => {
+              let lp = 0;
+              if (sp >= 0.25) {
+                lp = 1.0; // Locked at 1.0 during HOLD & EXIT
+              } else if (sp < 0.08) {
+                lp = 0.0;
+              } else {
+                const staggerStart = (li / Math.max(1, totalL)) * 0.6;
+                lp = mapRange(titleP, staggerStart, staggerStart + 0.4, 0, 1);
+              }
               ss(el, {
-                opacity: String(Math.max(lp, p > z.exit ? 0.6 : lp)),
+                opacity: String(lp),
                 transform: `translateY(${20 * (1 - lp)}px)`,
                 filter: `blur(${2 * (1 - lp)}px)`,
               });
             });
 
-            /* Hook words */
-            svcHookRefs.current[i].forEach((el, wi) => {
-              const wp = pb(p, z.reveal + 0.045 + wi * 0.009, z.reveal + 0.045 + wi * 0.009 + 0.02);
-              ss(el, { opacity: String(Math.max(wp, p > z.exit ? 0.55 : wp)), transform: `translateY(${20 * (1 - wp)}px)` });
+            /* TAGLINE WORDS REVEAL (0.25 -> 0.36) */
+            const taglineP = mapRange(sp, 0.25, 0.36, 0, 1);
+            const words = svcHookRefs.current[i];
+            const totalW = words.length;
+            words.forEach((el, wi) => {
+              let wp = 0;
+              if (sp >= 0.36) {
+                wp = 1.0; // Locked at 1.0 during HOLD & EXIT
+              } else if (sp < 0.25) {
+                wp = 0.0;
+              } else {
+                const staggerStart = (wi / Math.max(1, totalW)) * 0.6;
+                wp = mapRange(taglineP, staggerStart, staggerStart + 0.4, 0, 1);
+              }
+              ss(el, {
+                opacity: String(wp),
+                transform: `translateY(${20 * (1 - wp)}px)`,
+              });
             });
 
-            /* Service items — staggered */
-            svcItemRefs.current[i].forEach((el, ii) => {
-              const ip = pb(p, z.reveal + 0.065 + ii * 0.01, z.reveal + 0.065 + ii * 0.01 + 0.018);
-              ss(el, { opacity: String(Math.max(ip, p > z.exit ? 0.45 : ip)), transform: `translateY(${14 * (1 - ip)}px)` });
+            /* SERVICE LIST ITEMS REVEAL (0.36 -> 0.52) */
+            const listP = mapRange(sp, 0.36, 0.52, 0, 1);
+            const items = svcItemRefs.current[i];
+            const totalI = items.length;
+            items.forEach((el, ii) => {
+              let ip = 0;
+              if (sp >= 0.52) {
+                ip = 1.0; // Locked at 1.0 during HOLD & EXIT
+              } else if (sp < 0.36) {
+                ip = 0.0;
+              } else {
+                const staggerStart = (ii / Math.max(1, totalI)) * 0.6;
+                ip = mapRange(listP, staggerStart, staggerStart + 0.4, 0, 1);
+              }
+              ss(el, {
+                opacity: String(ip),
+                transform: `translateY(${14 * (1 - ip)}px)`,
+              });
             });
 
-            /* Description */
-            const dp = pb(p, z.reveal + 0.115, z.reveal + 0.135);
-            ss(svcDescRefs.current[i], { opacity: String(Math.max(dp, p > z.exit ? 0.40 : dp)), transform: `translateY(${8 * (1 - dp)}px)` });
+            /* DESCRIPTION REVEAL (0.52 -> 0.62) */
+            const descP = mapRange(sp, 0.52, 0.62, 0, 1);
+            let dp = 0;
+            if (sp >= 0.62) {
+              dp = 1.0; // Locked at 1.0 during HOLD & EXIT
+            } else if (sp < 0.52) {
+              dp = 0.0;
+            } else {
+              dp = descP;
+            }
+            ss(svcDescRefs.current[i], {
+              opacity: String(dp),
+              transform: `translateY(${8 * (1 - dp)}px)`,
+            });
           });
 
           /* Indicator dots */
           dotRefs.current.forEach((el, i) => {
-            ss(el, { color: i === activeIdx ? '#D4AF37' : '#475569' });
+            ss(el, { color: i === currentActiveIdx ? '#D4AF37' : '#475569' });
           });
 
           /* ─ 5. ONE IDEA / STRATEGY (0.86–0.92) ─ */
@@ -376,12 +460,7 @@ export const ServicesSection: React.FC = () => {
     <section
       id="services"
       ref={sectionRef}
-      data-animate
-      className={[
-        'relative z-30 w-full bg-black text-white border-t border-white/10 overflow-hidden',
-        /* Tall scroll container: enough time for ENTER / REVEAL / HOLD / EXIT per service */
-        'min-h-[680vh] sm:min-h-[580vh] lg:min-h-[520vh]',
-      ].join(' ')}
+      className="relative z-30 w-full bg-black text-white border-t border-white/10 overflow-hidden min-h-[680vh] sm:min-h-[580vh] lg:min-h-[520vh]"
     >
       {/* ── INDICATOR: zero-height sticky — no blank space in flow ── */}
       <div
@@ -513,13 +592,14 @@ export const ServicesSection: React.FC = () => {
             <article
               key={svc.id}
               ref={el => { svcRefs.current[si] = el; }}
-              data-animate
-              className="relative flex flex-col gap-5 sm:gap-6 pl-9 sm:pl-14 will-change-[opacity]"
+              data-service-article={svc.id}
+              className="relative flex flex-col gap-5 sm:gap-6 pl-9 sm:pl-14 will-change-[opacity,transform]"
             >
               {/* Number + Title */}
               <div className="flex flex-row items-start gap-3 sm:gap-6">
                 <span
                   ref={el => { svcNumRefs.current[si] = el; }}
+                  data-service-number={svc.number}
                   className="font-mono text-sm sm:text-xl tracking-[0.2em] font-semibold flex-shrink-0 pt-1 sm:pt-2"
                   style={{ color: '#94A3B8' }}
                 >
@@ -527,22 +607,21 @@ export const ServicesSection: React.FC = () => {
                 </span>
 
                 <h3
-                  className="font-display font-black tracking-[0.12em] sm:tracking-[0.15em] uppercase leading-none flex flex-col"
+                  className="font-display font-black tracking-[0.12em] sm:tracking-[0.15em] uppercase leading-none flex flex-col max-w-full"
                   style={{ fontSize: 'clamp(2.4rem, 7.5vw, 8rem)' }}
                   aria-label={svc.title}
                 >
                   {svc.titleLines.map((line, li) => (
                     <span key={li} className="flex flex-wrap gap-x-[0.03em] overflow-visible">
                       {splitLetters(line).map((char, ci) => {
-                        // global letter index across all lines
                         const prevLen = svc.titleLines.slice(0, li).join('').length;
                         const gIdx = prevLen + ci;
                         return (
                           <span
                             key={ci}
                             ref={el => { svcTitleRefs.current[si][gIdx] = el; }}
-                            data-animate
-                            className="inline-block will-change-transform"
+                            data-service-title-letter={`${si}-${gIdx}`}
+                            className="inline-block will-change-[opacity,transform,filter]"
                             style={{ display: char === ' ' ? 'inline' : 'inline-block' }}
                           >
                             {char === ' ' ? '\u00A0' : char}
@@ -563,8 +642,8 @@ export const ServicesSection: React.FC = () => {
                   <span
                     key={wi}
                     ref={el => { svcHookRefs.current[si][wi] = el; }}
-                    data-animate
-                    className="font-mono text-xs sm:text-sm tracking-[0.25em] text-gold uppercase font-medium inline-block will-change-transform"
+                    data-service-tagline-word={`${si}-${wi}`}
+                    className="font-mono text-xs sm:text-sm tracking-[0.25em] text-gold uppercase font-medium inline-block will-change-[opacity,transform]"
                   >
                     {word}
                   </span>
@@ -584,8 +663,8 @@ export const ServicesSection: React.FC = () => {
                   <li
                     key={ii}
                     ref={el => { svcItemRefs.current[si][ii] = el; }}
-                    data-animate
-                    className="font-mono text-xs sm:text-sm tracking-[0.2em] text-silver/85 uppercase will-change-transform"
+                    data-service-item={`${si}-${ii}`}
+                    className="font-mono text-xs sm:text-sm tracking-[0.2em] text-silver/85 uppercase will-change-[opacity,transform]"
                   >
                     <span className="text-gold/50 mr-3" aria-hidden="true">—</span>
                     {item}
@@ -596,8 +675,8 @@ export const ServicesSection: React.FC = () => {
               {/* Description */}
               <p
                 ref={el => { svcDescRefs.current[si] = el; }}
-                data-animate
-                className="font-mono text-xs sm:text-sm tracking-[0.18em] text-silver/65 max-w-xl leading-relaxed mt-2 will-change-transform"
+                data-service-description={svc.id}
+                className="font-mono text-xs sm:text-sm tracking-[0.18em] text-silver/65 max-w-xl leading-relaxed mt-2 will-change-[opacity,transform]"
               >
                 {svc.description}
               </p>
@@ -739,3 +818,4 @@ export const ServicesSection: React.FC = () => {
     </section>
   );
 };
+

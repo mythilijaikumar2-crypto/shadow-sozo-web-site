@@ -3,6 +3,7 @@ import { LenisProvider } from './components/LenisProvider';
 import { Navbar } from './components/Navbar';
 import { ScrollStory } from './components/ScrollStory';
 import { NextSection } from './components/NextSection';
+import { AboutSection } from './components/AboutSection';
 
 export function App() {
   const [masterProgress, setMasterProgress] = useState<number>(0);
@@ -17,6 +18,7 @@ export function App() {
         <main className="relative z-10">
           <ScrollStory onProgressUpdate={setMasterProgress} />
           <NextSection />
+          <AboutSection />
         </main>
       </div>
     </LenisProvider>

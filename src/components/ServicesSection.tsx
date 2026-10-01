@@ -112,22 +112,20 @@ export const ServicesSection: React.FC = () => {
       return;
     }
 
-    // Scroll progress boundaries
-    // 0.00 - 0.10: Section intro fade-in / staging
-    // 0.10 - 0.29: Service 01
-    // 0.29 - 0.48: Service 02
-    // 0.48 - 0.67: Service 03
-    // 0.67 - 0.86: Service 04
-    // 0.86 - 1.00: Staging exit / transition to next section
+    // Continuous scroll progress boundaries with ZERO empty scroll gap at top or bottom
+    // Service 01: 0.00 -> 0.25
+    // Service 02: 0.25 -> 0.50
+    // Service 03: 0.50 -> 0.75
+    // Service 04: 0.75 -> 1.00
     const ranges = [
-      { start: 0.10, end: 0.29 },
-      { start: 0.29, end: 0.48 },
-      { start: 0.48, end: 0.67 },
-      { start: 0.67, end: 0.86 },
+      { start: 0.00, end: 0.25 },
+      { start: 0.25, end: 0.50 },
+      { start: 0.50, end: 0.75 },
+      { start: 0.75, end: 1.00 },
     ];
 
     const updateStage = (progress: number) => {
-      // Update overall progress indicator bar if present
+      // Update overall progress indicator bar
       if (progressBarRef.current) {
         progressBarRef.current.style.transform = `scaleX(${progress})`;
       }
@@ -148,7 +146,7 @@ export const ServicesSection: React.FC = () => {
           localProgress = 0;
         }
 
-        const isActiveRange = progress >= start - 0.02 && progress <= end + 0.02;
+        const isActiveRange = progress >= start - 0.03 && progress <= end + 0.03;
         const isCurrentActive = progress >= start && progress <= end;
 
         // Update nav indicator number color
@@ -178,13 +176,13 @@ export const ServicesSection: React.FC = () => {
         // -------------------------------------------------------------
         // SUB-PHASE CALCULATIONS FROM MASTER LOCAL PROGRESS (0 -> 1)
         // -------------------------------------------------------------
-        // 0.00 -> 0.10 : ENTER
-        // 0.10 -> 0.30 : TITLE REVEAL
-        // 0.30 -> 0.42 : TAGLINE REVEAL
-        // 0.42 -> 0.58 : SERVICE LIST REVEAL
-        // 0.58 -> 0.68 : DESCRIPTION REVEAL
-        // 0.68 -> 0.90 : READING HOLD (All locked at 100% visibility)
-        // 0.90 -> 1.00 : EXIT
+        // 0.00 -> 0.08 : ENTER
+        // 0.08 -> 0.28 : TITLE REVEAL
+        // 0.28 -> 0.40 : TAGLINE REVEAL
+        // 0.40 -> 0.55 : SERVICE LIST REVEAL
+        // 0.55 -> 0.65 : DESCRIPTION REVEAL
+        // 0.65 -> 0.92 : READING HOLD (All locked at 100% visibility)
+        // 0.92 -> 1.00 : EXIT
 
         const sp = localProgress;
 
@@ -193,24 +191,24 @@ export const ServicesSection: React.FC = () => {
         let artTranslateY = 0;
         let artScale = 1;
 
-        if (sp < 0.10) {
-          const t = sp / 0.10;
+        if (sp < 0.08) {
+          const t = sp / 0.08;
           artOpacity = t;
-          artTranslateY = 20 * (1 - t);
+          artTranslateY = 16 * (1 - t);
           artScale = 0.98 + 0.02 * t;
-        } else if (sp <= 0.90) {
+        } else if (sp <= 0.92) {
           artOpacity = 1;
           artTranslateY = 0;
           artScale = 1;
         } else {
-          const t = (sp - 0.90) / 0.10;
+          const t = (sp - 0.92) / 0.08;
           artOpacity = 1 - t;
-          artTranslateY = -20 * t;
+          artTranslateY = -16 * t;
           artScale = 1 - 0.02 * t;
         }
 
         article.style.opacity = artOpacity.toFixed(3);
-        article.style.transform = `translate3d(0, ${artTranslateY.toFixed(2)}px, 0) scale(${artScale.toFixed(4)})`;
+        article.style.transform = `translate3d(-50%, calc(-50% + ${artTranslateY.toFixed(2)}px), 0) scale(${artScale.toFixed(4)})`;
 
         // 2. Title Letters Reveal (Sequential)
         const letters = titleLetterRefs.current[idx];
@@ -218,19 +216,19 @@ export const ServicesSection: React.FC = () => {
         if (numLetters > 0) {
           letters.forEach((letter, j) => {
             if (!letter) return;
-            if (sp < 0.10) {
+            if (sp < 0.08) {
               letter.style.opacity = '0';
-              letter.style.transform = 'translate3d(0, 20px, 0)';
+              letter.style.transform = 'translate3d(0, 16px, 0)';
               letter.style.filter = 'blur(2px)';
-            } else if (sp >= 0.30) {
+            } else if (sp >= 0.28) {
               letter.style.opacity = '1';
               letter.style.transform = 'translate3d(0, 0px, 0)';
               letter.style.filter = 'blur(0px)';
             } else {
-              const t = (sp - 0.10) / 0.20;
+              const t = (sp - 0.08) / 0.20;
               const letterP = Math.max(0, Math.min(1, t * numLetters - j));
               letter.style.opacity = letterP.toFixed(3);
-              letter.style.transform = `translate3d(0, ${(20 * (1 - letterP)).toFixed(2)}px, 0)`;
+              letter.style.transform = `translate3d(0, ${(16 * (1 - letterP)).toFixed(2)}px, 0)`;
               letter.style.filter = `blur(${(2 * (1 - letterP)).toFixed(2)}px)`;
             }
           });
@@ -242,17 +240,17 @@ export const ServicesSection: React.FC = () => {
         if (numWords > 0) {
           words.forEach((word, k) => {
             if (!word) return;
-            if (sp < 0.30) {
+            if (sp < 0.28) {
               word.style.opacity = '0';
-              word.style.transform = 'translate3d(0, 20px, 0)';
-            } else if (sp >= 0.42) {
+              word.style.transform = 'translate3d(0, 14px, 0)';
+            } else if (sp >= 0.40) {
               word.style.opacity = '1';
               word.style.transform = 'translate3d(0, 0px, 0)';
             } else {
-              const t = (sp - 0.30) / 0.12;
+              const t = (sp - 0.28) / 0.12;
               const wordP = Math.max(0, Math.min(1, t * numWords - k));
               word.style.opacity = wordP.toFixed(3);
-              word.style.transform = `translate3d(0, ${(20 * (1 - wordP)).toFixed(2)}px, 0)`;
+              word.style.transform = `translate3d(0, ${(14 * (1 - wordP)).toFixed(2)}px, 0)`;
             }
           });
         }
@@ -263,17 +261,17 @@ export const ServicesSection: React.FC = () => {
         if (numItems > 0) {
           listItems.forEach((item, m) => {
             if (!item) return;
-            if (sp < 0.42) {
+            if (sp < 0.40) {
               item.style.opacity = '0';
-              item.style.transform = 'translate3d(0, 14px, 0)';
-            } else if (sp >= 0.58) {
+              item.style.transform = 'translate3d(0, 12px, 0)';
+            } else if (sp >= 0.55) {
               item.style.opacity = '1';
               item.style.transform = 'translate3d(0, 0px, 0)';
             } else {
-              const t = (sp - 0.42) / 0.16;
+              const t = (sp - 0.40) / 0.15;
               const itemP = Math.max(0, Math.min(1, t * numItems - m));
               item.style.opacity = itemP.toFixed(3);
-              item.style.transform = `translate3d(0, ${(14 * (1 - itemP)).toFixed(2)}px, 0)`;
+              item.style.transform = `translate3d(0, ${(12 * (1 - itemP)).toFixed(2)}px, 0)`;
             }
           });
         }
@@ -281,14 +279,14 @@ export const ServicesSection: React.FC = () => {
         // 5. Description Reveal
         const desc = descRefs.current[idx];
         if (desc) {
-          if (sp < 0.58) {
+          if (sp < 0.55) {
             desc.style.opacity = '0';
             desc.style.transform = 'translate3d(0, 8px, 0)';
-          } else if (sp >= 0.68) {
+          } else if (sp >= 0.65) {
             desc.style.opacity = '1';
             desc.style.transform = 'translate3d(0, 0px, 0)';
           } else {
-            const descP = (sp - 0.58) / 0.10;
+            const descP = (sp - 0.55) / 0.10;
             desc.style.opacity = descP.toFixed(3);
             desc.style.transform = `translate3d(0, ${(8 * (1 - descP)).toFixed(2)}px, 0)`;
           }
@@ -301,7 +299,7 @@ export const ServicesSection: React.FC = () => {
       trigger: container,
       start: 'top top',
       end: 'bottom bottom',
-      scrub: 0.5,
+      scrub: 0.3,
       onUpdate: (self) => {
         updateStage(self.progress);
       },
@@ -317,15 +315,15 @@ export const ServicesSection: React.FC = () => {
 
   return (
     <section id="services" className="relative w-full bg-black text-white border-t border-white/10">
-      {/* Scroll Space Container defining the pinned scroll duration */}
-      <div ref={containerRef} className="services-scroll-space relative w-full h-[550vh] bg-black">
+      {/* Scroll Space Container defining tight, responsive scroll duration */}
+      <div ref={containerRef} className="services-scroll-space relative w-full h-[400vh] bg-black">
         {/* Sticky Stage Container pinned in viewport */}
         <div
           ref={stickyStageRef}
-          className="services-sticky-stage sticky top-0 h-screen w-full flex flex-col justify-between overflow-hidden bg-black px-4 sm:px-8 lg:px-16 py-6 sm:py-10 z-10"
+          className="services-sticky-stage sticky top-0 h-screen w-full flex flex-col justify-between overflow-hidden bg-black px-4 sm:px-8 lg:px-16 py-4 sm:py-6 lg:py-8 z-10"
         >
           {/* Header Section */}
-          <header className="services-intro flex items-center justify-between w-full max-w-6xl mx-auto border-b border-white/10 pb-4 shrink-0">
+          <header className="services-intro flex items-center justify-between w-full max-w-6xl mx-auto border-b border-white/10 pb-3 sm:pb-4 shrink-0">
             <div className="flex items-center gap-3">
               <span className="font-mono text-xs sm:text-sm text-gold tracking-widest font-bold">03</span>
               <h2 className="font-mono text-xs sm:text-sm tracking-[0.3em] text-white/90 uppercase font-semibold">
@@ -337,8 +335,8 @@ export const ServicesSection: React.FC = () => {
             </p>
           </header>
 
-          {/* Central Service Stage (All 4 services overlay in this single visual frame) */}
-          <div className="service-stage relative w-full h-full max-w-5xl mx-auto flex-1 my-auto flex items-center justify-center">
+          {/* Central Service Stage (All 4 services overlay cleanly centered in frame) */}
+          <div className="service-stage relative w-full max-w-5xl mx-auto flex-1 min-h-0 flex items-center justify-center">
             {SERVICES_DATA.map((service, idx) => (
               <article
                 key={service.id}
@@ -346,13 +344,13 @@ export const ServicesSection: React.FC = () => {
                   articleRefs.current[idx] = el;
                 }}
                 data-service-article={service.num}
-                className="absolute inset-0 m-auto w-full h-fit flex flex-col justify-center gap-5 sm:gap-6 lg:gap-8 transition-none pointer-events-none opacity-0"
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl flex flex-col justify-center gap-4 sm:gap-5 lg:gap-6 transition-none pointer-events-none opacity-0"
                 style={{ visibility: 'hidden' }}
               >
                 {/* Service Header: Number & Title */}
-                <div className="flex flex-col gap-2 sm:gap-3">
+                <div className="flex flex-col gap-1.5 sm:gap-2.5">
                   <div className="flex items-baseline gap-3 sm:gap-4">
-                    <span className="font-mono text-gold text-lg sm:text-2xl font-bold tracking-widest select-none">
+                    <span className="font-mono text-gold text-base sm:text-xl lg:text-2xl font-bold tracking-widest select-none">
                       {service.num}
                     </span>
                     <h3 className="font-display font-black tracking-tight text-white uppercase text-2xl sm:text-4xl lg:text-6xl xl:text-7xl leading-none flex flex-wrap">
@@ -395,10 +393,10 @@ export const ServicesSection: React.FC = () => {
                 </div>
 
                 {/* Subtle Divider */}
-                <div className="w-full h-[1px] bg-gradient-to-r from-gold/40 via-white/20 to-transparent my-1" />
+                <div className="w-full h-[1px] bg-gradient-to-r from-gold/40 via-white/20 to-transparent my-0.5 sm:my-1" />
 
                 {/* Grid of Capabilities */}
-                <ul className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3.5 lg:gap-4 w-full">
+                <ul className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 lg:gap-3.5 w-full">
                   {service.items.map((item, itemIdx) => (
                     <li
                       key={itemIdx}
@@ -409,7 +407,7 @@ export const ServicesSection: React.FC = () => {
                         listItemRefs.current[idx][itemIdx] = el;
                       }}
                       data-service-item={itemIdx}
-                      className="font-mono text-[11px] sm:text-xs lg:text-sm tracking-wider text-white/90 bg-white/5 border border-white/10 rounded px-3 py-2 flex items-center gap-2 will-change-transform"
+                      className="font-mono text-[11px] sm:text-xs lg:text-sm tracking-wider text-white/90 bg-white/5 border border-white/10 rounded px-2.5 sm:px-3 py-1.5 sm:py-2 flex items-center gap-2 will-change-transform"
                     >
                       <span className="w-1.5 h-1.5 rounded-full bg-gold shrink-0" />
                       <span className="truncate">{item}</span>
@@ -423,7 +421,7 @@ export const ServicesSection: React.FC = () => {
                     descRefs.current[idx] = el;
                   }}
                   data-service-description
-                  className="font-sans text-sm sm:text-base lg:text-lg text-white/70 max-w-2xl leading-relaxed will-change-transform"
+                  className="font-sans text-xs sm:text-base lg:text-lg text-white/70 max-w-2xl leading-relaxed will-change-transform"
                 >
                   {service.description}
                 </p>
@@ -432,7 +430,7 @@ export const ServicesSection: React.FC = () => {
           </div>
 
           {/* Footer Controls / Service Navigation Indicators */}
-          <footer className="w-full max-w-6xl mx-auto pt-4 border-t border-white/10 flex items-center justify-between shrink-0">
+          <footer className="w-full max-w-6xl mx-auto pt-3 sm:pt-4 border-t border-white/10 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-4">
               {SERVICES_DATA.map((service, idx) => (
                 <span

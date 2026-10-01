@@ -376,19 +376,20 @@ export const NextSection: React.FC = () => {
         </header>
 
         {/* ── PILLARS ────────────────────────────────────────── */}
-        <div className="relative w-full flex flex-col gap-16 sm:gap-24 lg:gap-32">
+        <div className="relative w-full flex flex-col gap-14 sm:gap-24 lg:gap-32">
 
-          {/* Gold thread */}
+          {/* Gold thread — sits in the left padding rail */}
           <div
             ref={threadRef}
-            className="absolute left-[0.65rem] sm:left-[0.9rem] top-4 bottom-4 w-[1px] bg-gold/35 pointer-events-none z-0 will-change-transform"
+            className="absolute left-[1rem] sm:left-[1.25rem] top-4 bottom-4 w-[1px] bg-gold/35 pointer-events-none z-0 will-change-transform"
             aria-hidden="true"
           />
 
-          {/* Active indicator dot */}
+          {/* Active indicator dot — centred on the thread */}
           <div
             ref={indicatorRef}
-            className="absolute left-[0.32rem] sm:left-[0.57rem] w-[6px] h-[6px] rounded-full bg-gold pointer-events-none z-10 transition-[top] duration-300 will-change-[top]"
+            className="absolute left-[0.69rem] sm:left-[0.94rem] w-[6px] h-[6px] rounded-full bg-gold pointer-events-none z-10 will-change-[top]"
+            style={{ top: '-2.5px' }}
             aria-hidden="true"
           />
 
@@ -396,21 +397,22 @@ export const NextSection: React.FC = () => {
             <div
               key={pillar.id}
               ref={el => { pillarRefs.current[index] = el; }}
-              className="relative z-10 flex flex-col gap-4 sm:gap-5 will-change-[opacity]"
+              /* LEFT RAIL: consistent pl-9 mobile, pl-14 tablet+ so all content clears the thread */
+              className="relative z-10 flex flex-col gap-3 sm:gap-5 pl-9 sm:pl-14 will-change-[opacity]"
             >
-              {/* Number + Title row */}
-              <div className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-8">
+              {/* Number + Title — always flex-row so they NEVER misalign on mobile */}
+              <div className="flex flex-row items-baseline gap-3 sm:gap-6">
                 <span
                   ref={el => { pillarNumRefs.current[index] = el; }}
-                  className="font-mono text-lg sm:text-2xl tracking-[0.2em] font-semibold pl-8 select-none"
+                  className="font-mono text-sm sm:text-xl tracking-[0.2em] font-semibold flex-shrink-0 select-none"
                 >
                   {pillar.number}
                 </span>
 
                 <h3
                   ref={el => { pillarTitleRefs.current[index] = el; }}
-                  className="font-display font-black tracking-[0.15em] uppercase leading-none will-change-transform"
-                  style={{ fontSize: 'clamp(2.8rem, 8.5vw, 8.5rem)' }}
+                  className="font-display font-black tracking-[0.1em] sm:tracking-[0.15em] uppercase leading-none will-change-transform min-w-0"
+                  style={{ fontSize: 'clamp(2.4rem, 7.5vw, 8.5rem)' }}
                 >
                   {pillar.title}
                 </h3>
@@ -423,12 +425,21 @@ export const NextSection: React.FC = () => {
                 aria-hidden="true"
               />
 
-              {/* Detail items */}
+              {/* Detail items — stack vertically on mobile, bullet-separated on desktop */}
               <div
                 ref={el => { pillarDetailRefs.current[index] = el; }}
-                className="pl-8 sm:pl-16 pt-1 will-change-[opacity]"
+                className="pt-1 will-change-[opacity]"
               >
-                <p className="font-mono text-xs sm:text-sm tracking-[0.2em] text-silver/85 uppercase leading-relaxed">
+                {/* Mobile: vertical list */}
+                <ul className="flex flex-col gap-1 sm:hidden list-none">
+                  {pillar.items.map((item, i) => (
+                    <li key={i} className="font-mono text-xs tracking-[0.18em] text-silver/85 uppercase leading-relaxed">
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+                {/* Tablet+: inline bullet list */}
+                <p className="hidden sm:block font-mono text-xs sm:text-sm tracking-[0.2em] text-silver/85 uppercase leading-relaxed">
                   {pillar.items.map((item, i) => (
                     <React.Fragment key={i}>
                       <span>{item}</span>

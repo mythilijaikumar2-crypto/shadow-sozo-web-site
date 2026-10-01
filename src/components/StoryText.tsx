@@ -45,6 +45,11 @@ export const StoryText: React.FC<StoryTextProps> = ({ progress }) => {
     display: scene1Opacity > 0.01 ? 'flex' : 'none',
   };
 
+  // The Gold Thread Line Width Calculation (Composition aware)
+  const threadLineWidth = isMobile
+    ? `calc(90px + ${expandP * 90}px)`
+    : `calc(160px + ${expandP * 180}px)`;
+
   // Scene 2: 10% -> 25% (Everything starts in the shadow)
   const scene2 = getSceneState(0.10, 0.13, 0.22, 0.25);
 
@@ -115,7 +120,7 @@ export const StoryText: React.FC<StoryTextProps> = ({ progress }) => {
     <div className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col items-center justify-center min-h-[60vh] select-none">
       
       {/* ====================================================
-          SCENE 01: 0% -> 10% (Split Hero -> Fullscreen Film)
+          SCENE 01: 0% -> 10% (Split Hero with The Gold Thread)
          ==================================================== */}
       {scene1Opacity > 0.01 && (
         <div
@@ -123,13 +128,22 @@ export const StoryText: React.FC<StoryTextProps> = ({ progress }) => {
           className="absolute inset-0 z-20 flex flex-col justify-center pointer-events-auto p-4 sm:p-8 md:p-12 text-left md:w-[38%]"
         >
           <div className="flex flex-col items-start gap-3 sm:gap-5 max-w-xl">
-            {/* Monospaced Index & Micro Credibility Badge */}
-            <div className="flex items-center gap-3">
-              <span className="font-mono text-xs sm:text-sm tracking-[0.3em] text-gold font-bold">
-                01
-              </span>
-              <span className="font-mono text-[9px] sm:text-[10px] tracking-[0.3em] text-gold uppercase px-3 py-1 rounded-full border border-gold/30 bg-black/70 backdrop-blur-md">
-                ✦ CREATIVE TECHNOLOGY STUDIO
+            
+            {/* The Gold Thread + Editorial Chapter Marker */}
+            <div className="flex flex-col items-start gap-1.5 w-full mb-1">
+              <div className="flex items-center gap-3 w-full">
+                <span className="font-mono text-xs sm:text-sm tracking-[0.3em] text-gold font-bold shrink-0">
+                  01
+                </span>
+                {/* Thin Solid Metallic Gold Thread Line */}
+                <div
+                  style={{ width: threadLineWidth }}
+                  className="h-[1px] bg-gold/70 transition-none"
+                />
+              </div>
+
+              <span className="font-mono text-[9px] sm:text-[10px] tracking-[0.35em] text-silver/80 uppercase">
+                CREATIVE TECHNOLOGY STUDIO
               </span>
             </div>
 

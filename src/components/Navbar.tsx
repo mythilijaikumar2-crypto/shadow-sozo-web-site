@@ -47,7 +47,7 @@ export const Navbar: React.FC<NavbarProps> = ({ progress = 0 }) => {
 
   const navItems = [
     { number: '01', title: 'ABOUT', href: '#about' },
-    { number: '02', title: 'SERVICES', href: '#what-we-create' },
+    { number: '02', title: 'SERVICES', href: '#services' },
     { number: '03', title: 'CONTACT', href: '#contact' },
   ];
 

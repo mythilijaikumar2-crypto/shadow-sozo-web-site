@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { calcNormalizedState } from '../types';
 
 interface StoryTextProps {
@@ -6,6 +6,17 @@ interface StoryTextProps {
 }
 
 export const StoryText: React.FC<StoryTextProps> = ({ progress }) => {
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768 || 'ontouchstart' in window);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   // Helper to compute element style and active status cleanly
   const getSceneState = (enterStart: number, enterEnd: number, exitStart: number, exitEnd: number) => {
     const s = calcNormalizedState(progress, enterStart, enterEnd, exitStart, exitEnd);
@@ -21,8 +32,18 @@ export const StoryText: React.FC<StoryTextProps> = ({ progress }) => {
     };
   };
 
-  // Scene 1: 0% -> 10% (Hero Opening)
-  const scene1 = getSceneState(0.0, 0.02, 0.07, 0.10);
+  // Scene 1 Split Hero -> Fullscreen Film Expansion Progress (0.00 -> 0.10)
+  const expandP = Math.min(1, progress / 0.10);
+  const scene1Opacity = Math.max(0, 1 - expandP);
+  const scene1Style: React.CSSProperties = {
+    opacity: scene1Opacity,
+    transform: isMobile
+      ? `translateY(${expandP * 50}px)`
+      : `translateX(${-expandP * 60}px)`,
+    filter: `blur(${expandP * 8}px)`,
+    pointerEvents: scene1Opacity > 0.1 ? 'auto' : 'none',
+    display: scene1Opacity > 0.01 ? 'flex' : 'none',
+  };
 
   // Scene 2: 10% -> 25% (Everything starts in the shadow)
   const scene2 = getSceneState(0.10, 0.13, 0.22, 0.25);
@@ -58,8 +79,8 @@ export const StoryText: React.FC<StoryTextProps> = ({ progress }) => {
     }
 
     const opacity = 0.35 + emphasis * 0.65;
-    const scale = 0.98 + emphasis * 0.04; // 0.98 -> 1.02
-    const blur = (1 - emphasis) * 2; // 2px -> 0px
+    const scale = 0.98 + emphasis * 0.04;
+    const blur = (1 - emphasis) * 2;
     const isGold = emphasis > 0.3;
 
     return {
@@ -88,42 +109,60 @@ export const StoryText: React.FC<StoryTextProps> = ({ progress }) => {
   const scene7Fly = getSceneState(0.92, 0.935, 0.94, 0.95);
   const scene7To = getSceneState(0.945, 0.955, 0.96, 0.968);
   const scene7High = getSceneState(0.965, 0.975, 0.98, 0.985);
-  const scene7Finale = getSceneState(0.98, 0.99, 1.0, 1.0); // Holds at 1.0
+  const scene7Finale = getSceneState(0.98, 0.99, 1.0, 1.0);
 
   return (
-    <div className="relative z-20 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col items-center justify-center min-h-[60vh] select-none">
+    <div className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col items-center justify-center min-h-[60vh] select-none">
       
       {/* ====================================================
-          SCENE 01: 0% -> 10% (Hero Opening)
+          SCENE 01: 0% -> 10% (Split Hero -> Fullscreen Film)
          ==================================================== */}
-      <div
-        style={scene1.style}
-        className="flex flex-col items-center justify-center gap-4 sm:gap-6 transition-all duration-300 mt-8 sm:mt-14 md:mt-20"
-      >
-        {/* Micro Credibility Label */}
-        <span className="font-mono text-[10px] sm:text-xs tracking-[0.35em] text-gold uppercase px-4 py-1.5 rounded-full border border-gold/30 bg-black/60 backdrop-blur-md shadow-gold-glow">
-          ✦ CREATIVE TECHNOLOGY STUDIO
-        </span>
+      {scene1Opacity > 0.01 && (
+        <div
+          style={scene1Style}
+          className="absolute inset-0 z-20 flex flex-col justify-center pointer-events-auto p-4 sm:p-8 md:p-12 text-left md:w-[38%]"
+        >
+          <div className="flex flex-col items-start gap-3 sm:gap-5 max-w-xl">
+            {/* Monospaced Index & Micro Credibility Badge */}
+            <div className="flex items-center gap-3">
+              <span className="font-mono text-xs sm:text-sm tracking-[0.3em] text-gold font-bold">
+                01
+              </span>
+              <span className="font-mono text-[9px] sm:text-[10px] tracking-[0.3em] text-gold uppercase px-3 py-1 rounded-full border border-gold/30 bg-black/70 backdrop-blur-md">
+                ✦ CREATIVE TECHNOLOGY STUDIO
+              </span>
+            </div>
 
-        {/* Exact Shadow Sozo Logo */}
-        <div className="relative my-2">
-          <img
-            src="/assets/logo.svg"
-            alt="SHADOW SOZO Official Logo"
-            className="h-16 w-auto sm:h-24 md:h-28 object-contain drop-shadow-cinematic"
-          />
+            {/* Official Logo Asset */}
+            <div className="relative my-1">
+              <img
+                src="/assets/logo.svg"
+                alt="SHADOW SOZO Logo"
+                className="h-12 w-auto sm:h-16 md:h-20 object-contain drop-shadow-cinematic"
+              />
+            </div>
+
+            {/* Title & Brand Hook */}
+            <h1 className="font-display text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-[0.18em] text-white uppercase leading-none drop-shadow-cinematic">
+              SHADOW SOZO
+            </h1>
+
+            <p className="font-syne text-base sm:text-xl md:text-2xl font-extrabold tracking-[0.3em] text-gold-gradient uppercase drop-shadow-gold mt-1">
+              FLY TO HIGH
+            </p>
+
+            {/* Scroll Cue */}
+            <div className="mt-4 sm:mt-6 flex items-center gap-3 animate-scroll-pulse">
+              <span className="font-mono text-[10px] sm:text-xs tracking-[0.35em] text-silver/80 uppercase">
+                SCROLL TO ENTER
+              </span>
+              <svg className="w-3.5 h-3.5 text-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              </svg>
+            </div>
+          </div>
         </div>
-
-        {/* Title Wordmark */}
-        <h1 className="font-display text-4xl sm:text-6xl md:text-8xl lg:text-9xl font-black tracking-[0.2em] sm:tracking-[0.25em] text-white uppercase drop-shadow-cinematic">
-          SHADOW SOZO
-        </h1>
-
-        {/* Brand Hook */}
-        <p className="font-syne text-lg sm:text-2xl md:text-4xl font-extrabold tracking-[0.35em] text-gold-gradient uppercase drop-shadow-gold">
-          FLY TO HIGH
-        </p>
-      </div>
+      )}
 
       {/* ====================================================
           SCENE 02: 10% -> 25% (Everything Starts in the Shadow)
@@ -166,19 +205,12 @@ export const StoryText: React.FC<StoryTextProps> = ({ progress }) => {
         style={scene4Base.style}
         className="flex flex-col items-center justify-center gap-6 sm:gap-8 w-full max-w-3xl min-h-[320px]"
       >
-        {/* Subtle Studio Label */}
         <span className="font-mono text-[10px] sm:text-xs tracking-[0.35em] text-silver/60 uppercase">
           SHADOW SOZO // WHAT WE BUILD
         </span>
 
-        {/* Editorial Pillars List */}
         <div className="flex flex-col gap-5 sm:gap-7 w-full text-left">
-          
-          {/* Item 01: DESIGN. */}
-          <div
-            style={scene4Item1.style}
-            className="border-l-2 pl-5 sm:pl-7"
-          >
+          <div style={scene4Item1.style} className="border-l-2 pl-5 sm:pl-7">
             <span className="font-mono text-xs sm:text-sm tracking-[0.3em] text-gold">01</span>
             <h3 className="font-display text-3xl sm:text-5xl md:text-6xl font-black text-white tracking-[0.12em] uppercase leading-none mt-1">
               DESIGN.
@@ -188,11 +220,7 @@ export const StoryText: React.FC<StoryTextProps> = ({ progress }) => {
             </p>
           </div>
 
-          {/* Item 02: DEVELOP. */}
-          <div
-            style={scene4Item2.style}
-            className="border-l-2 pl-5 sm:pl-7"
-          >
+          <div style={scene4Item2.style} className="border-l-2 pl-5 sm:pl-7">
             <span className="font-mono text-xs sm:text-sm tracking-[0.3em] text-gold">02</span>
             <h3 className="font-display text-3xl sm:text-5xl md:text-6xl font-black text-white tracking-[0.12em] uppercase leading-none mt-1">
               DEVELOP.
@@ -202,11 +230,7 @@ export const StoryText: React.FC<StoryTextProps> = ({ progress }) => {
             </p>
           </div>
 
-          {/* Item 03: GROW. */}
-          <div
-            style={scene4Item3.style}
-            className="border-l-2 pl-5 sm:pl-7"
-          >
+          <div style={scene4Item3.style} className="border-l-2 pl-5 sm:pl-7">
             <span className="font-mono text-xs sm:text-sm tracking-[0.3em] text-gold">03</span>
             <h3 className="font-display text-3xl sm:text-5xl md:text-6xl font-black text-white tracking-[0.12em] uppercase leading-none mt-1">
               GROW.
@@ -215,7 +239,6 @@ export const StoryText: React.FC<StoryTextProps> = ({ progress }) => {
               Scaling Digital Experiences
             </p>
           </div>
-
         </div>
       </div>
 

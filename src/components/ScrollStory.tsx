@@ -14,6 +14,16 @@ export const ScrollStory: React.FC<ScrollStoryProps> = ({ onProgressUpdate }) =>
   const sectionRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [masterProgress, setMasterProgress] = useState<number>(0);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768 || 'ontouchstart' in window);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -26,7 +36,6 @@ export const ScrollStory: React.FC<ScrollStoryProps> = ({ onProgressUpdate }) =>
 
     let targetTime = 0;
     let animationFrameId: number | null = null;
-    const isMobile = typeof window !== 'undefined' && (window.innerWidth < 768 || 'ontouchstart' in window);
 
     const handleLoadedMetadata = () => {
       ScrollTrigger.refresh();
@@ -92,7 +101,27 @@ export const ScrollStory: React.FC<ScrollStoryProps> = ({ onProgressUpdate }) =>
       }
       video.removeEventListener('loadedmetadata', handleLoadedMetadata);
     };
-  }, [onProgressUpdate]);
+  }, [onProgressUpdate, isMobile]);
+
+  // Master Progress Expansion Calculation (0.00 -> 0.10)
+  const expandP = Math.min(1, masterProgress / 0.10);
+
+  // Dynamic Video Wrapper Style for Split Hero -> Fullscreen Film Expansion
+  const videoWrapperStyle: React.CSSProperties = isMobile
+    ? {
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: `calc(48% + 52% * ${expandP})`,
+        borderRadius: `0 0 ${16 * (1 - expandP)}px ${16 * (1 - expandP)}px`,
+      }
+    : {
+        top: 0,
+        left: `calc(40% * (1 - ${expandP}))`,
+        width: `calc(60% + 40% * ${expandP})`,
+        height: '100%',
+        borderLeft: expandP < 0.99 ? '1px solid rgba(255, 255, 255, 0.1)' : 'none',
+      };
 
   return (
     <section
@@ -100,25 +129,32 @@ export const ScrollStory: React.FC<ScrollStoryProps> = ({ onProgressUpdate }) =>
       className="relative w-full h-[650vh] sm:h-[750vh] bg-black text-white"
       aria-label="Shadow Sozo Scroll Story"
     >
-      {/* Sticky Viewport Container with Mobile Hardware Acceleration */}
+      {/* Sticky Viewport Container */}
       <div className="sticky top-0 h-screen w-full overflow-hidden flex flex-col justify-between items-center bg-black gpu-accelerated">
         
-        {/* Background Video with Mobile Cover & Hardware Acceleration */}
-        <video
-          ref={videoRef}
-          src="/assets/shadow web final_gwr_video_mvp.mp4"
-          className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none z-0 select-none gpu-accelerated"
-          muted
-          playsInline
-          preload="auto"
-          aria-hidden="true"
-        />
+        {/* Dynamic Video Wrapper Container (Expands from Split 60% -> Fullscreen 100%) */}
+        <div
+          style={videoWrapperStyle}
+          className="absolute z-0 overflow-hidden pointer-events-none select-none gpu-accelerated"
+        >
+          <video
+            ref={videoRef}
+            src="/assets/shadow web final_gwr_video_mvp.mp4"
+            className="w-full h-full object-cover object-center pointer-events-none select-none gpu-accelerated"
+            muted
+            playsInline
+            preload="auto"
+            aria-hidden="true"
+          />
 
-        {/* Cinematic Vignette & Dark Overlays */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/35 to-black/95 pointer-events-none z-10" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.65)_100%)] pointer-events-none z-10" />
+          {/* Video Overlay: Very subtle during split (0.25), darkens slightly as it expands to fullscreen */}
+          <div
+            className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/20 to-black/80 pointer-events-none"
+            style={{ opacity: 0.25 + 0.55 * expandP }}
+          />
+        </div>
 
-        {/* Hero Micro UI (HUD Corners, Ambient Light, Scene Counter, Scroll Cue) */}
+        {/* Hero Micro UI (Viewfinder HUD, Scene Counter, Ambient Gold Light) */}
         <HeroMicroUI progress={masterProgress} />
 
         {/* Top Spacer */}
@@ -128,7 +164,7 @@ export const ScrollStory: React.FC<ScrollStoryProps> = ({ onProgressUpdate }) =>
         <StoryText progress={masterProgress} />
 
         {/* Bottom Progress Bar */}
-        <div className="z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 pb-4 sm:pb-6 flex items-center justify-between">
+        <div className="z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 pb-4 sm:pb-6 flex items-center justify-between pointer-events-none">
           <div className="w-full h-[1.5px] bg-white/10 relative overflow-hidden rounded-full max-w-xs mx-auto">
             <div
               className="absolute top-0 left-0 h-full bg-gold transition-all duration-75"

@@ -25,6 +25,7 @@ export const ScrollStory: React.FC<ScrollStoryProps> = ({ onProgressUpdate }) =>
 
     let targetTime = 0;
     let animationFrameId: number | null = null;
+    const isMobile = typeof window !== 'undefined' && (window.innerWidth < 768 || 'ontouchstart' in window);
 
     const handleLoadedMetadata = () => {
       ScrollTrigger.refresh();
@@ -35,19 +36,24 @@ export const ScrollStory: React.FC<ScrollStoryProps> = ({ onProgressUpdate }) =>
       handleLoadedMetadata();
     }
 
-    // High performance RAF frame handler for silky smooth video seeking
+    // High performance RAF video frame handler optimized for mobile GPU decoders
     const updateVideoFrame = () => {
       if (video && video.duration) {
-        const diff = Math.abs(video.currentTime - targetTime);
-        if (diff > 0.015) {
-          if ('fastSeek' in video && typeof (video as unknown as { fastSeek: (t: number) => void }).fastSeek === 'function') {
-            try {
-              (video as unknown as { fastSeek: (t: number) => void }).fastSeek(targetTime);
-            } catch {
+        // Prevent decoder backlog if mobile browser video decoder is currently seeking
+        if (!video.seeking) {
+          const diff = Math.abs(video.currentTime - targetTime);
+          const minDiff = isMobile ? 0.05 : 0.015;
+
+          if (diff > minDiff) {
+            if ('fastSeek' in video && typeof (video as unknown as { fastSeek: (t: number) => void }).fastSeek === 'function') {
+              try {
+                (video as unknown as { fastSeek: (t: number) => void }).fastSeek(targetTime);
+              } catch {
+                video.currentTime = targetTime;
+              }
+            } else {
               video.currentTime = targetTime;
             }
-          } else {
-            video.currentTime = targetTime;
           }
         }
       }
@@ -56,13 +62,13 @@ export const ScrollStory: React.FC<ScrollStoryProps> = ({ onProgressUpdate }) =>
 
     animationFrameId = requestAnimationFrame(updateVideoFrame);
 
-    // Single Master GSAP ScrollTrigger timeline
+    // Master GSAP ScrollTrigger timeline with mobile touch scrub tuning
     const ctx = gsap.context(() => {
       ScrollTrigger.create({
         trigger: section,
         start: 'top top',
         end: 'bottom bottom',
-        scrub: 1, // Smooth scrub factor
+        scrub: isMobile ? 0.3 : 0.8, // Faster scrub response on mobile touch
         anticipatePin: 1,
         invalidateOnRefresh: true,
         onUpdate: (self) => {
@@ -91,36 +97,36 @@ export const ScrollStory: React.FC<ScrollStoryProps> = ({ onProgressUpdate }) =>
   return (
     <section
       ref={sectionRef}
-      className="relative w-full h-[750vh] bg-black text-white"
+      className="relative w-full h-[650vh] sm:h-[750vh] bg-black text-white"
       aria-label="Shadow Sozo Scroll Story"
     >
-      {/* Sticky Viewport Container */}
-      <div className="sticky top-0 h-screen w-full overflow-hidden flex flex-col justify-between items-center bg-black">
+      {/* Sticky Viewport Container with Mobile Hardware Acceleration */}
+      <div className="sticky top-0 h-screen w-full overflow-hidden flex flex-col justify-between items-center bg-black gpu-accelerated">
         
-        {/* Background Video controlled strictly by master scroll progress */}
+        {/* Background Video with Mobile Cover & Hardware Acceleration */}
         <video
           ref={videoRef}
           src="/assets/shadow web final_gwr_video_mvp.mp4"
-          className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none z-0 select-none"
+          className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none z-0 select-none gpu-accelerated"
           muted
           playsInline
           preload="auto"
           aria-hidden="true"
         />
 
-        {/* Cinematic Vignette & Atmospheric Black/Gold Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/30 to-black/95 pointer-events-none z-10" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.6)_100%)] pointer-events-none z-10" />
+        {/* Cinematic Vignette & Dark Overlays */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/35 to-black/95 pointer-events-none z-10" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.65)_100%)] pointer-events-none z-10" />
 
-        {/* Top Navbar Spacer */}
-        <div className="h-20 sm:h-24 w-full z-20" />
+        {/* Top Spacer */}
+        <div className="h-16 sm:h-24 w-full z-20" />
 
-        {/* Master Story Text Component (receives master progress 0 -> 1) */}
+        {/* Story Text Overlay (passes normalized progress) */}
         <StoryText progress={masterProgress} />
 
-        {/* Bottom Spacer & Minimal Progress bar indicator */}
-        <div className="z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 pb-6 flex items-center justify-between">
-          <div className="w-full h-[1px] bg-white/10 relative overflow-hidden rounded-full max-w-xs mx-auto">
+        {/* Bottom Progress Bar */}
+        <div className="z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 pb-4 sm:pb-6 flex items-center justify-between">
+          <div className="w-full h-[1.5px] bg-white/10 relative overflow-hidden rounded-full max-w-xs mx-auto">
             <div
               className="absolute top-0 left-0 h-full bg-gold transition-all duration-75"
               style={{ width: `${masterProgress * 100}%` }}

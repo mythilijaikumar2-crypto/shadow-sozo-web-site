@@ -9,22 +9,24 @@ interface LenisProviderProps {
 
 export const LenisProvider: React.FC<LenisProviderProps> = ({ children }) => {
   useEffect(() => {
-    // Check if user prefers reduced motion
+    // Respect reduced motion settings
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (prefersReducedMotion) return;
 
-    // Initialize Lenis smooth scroll
+    const isTouch = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+
+    // Initialize Lenis with mobile-optimized touch physics
     const lenis = new Lenis({
-      duration: 1.2,
+      duration: isTouch ? 0.8 : 1.2,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: 'vertical',
       gestureOrientation: 'vertical',
       smoothWheel: true,
       wheelMultiplier: 1.0,
-      touchMultiplier: 1.5,
+      touchMultiplier: 1.0,
+      syncTouch: true,
     });
 
-    // Synchronize Lenis with GSAP ScrollTrigger
     lenis.on('scroll', ScrollTrigger.update);
 
     const updateTicker = (time: number) => {

@@ -75,11 +75,20 @@
   filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.8));
 }
 
-/* Smooth Video Hardware Acceleration */
-video {
-  transform: translateZ(0);
+/* Smooth Video & Layer GPU Acceleration */
+.gpu-accelerated {
+  will-change: transform, opacity;
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
-  perspective: 1000px;
+  -webkit-backface-visibility: hidden;
+}
+
+video {
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 /* Hide scrollbars for ultra minimal aesthetic */

@@ -124,3 +124,19 @@ video {
 .animate-scroll-pulse {
   animation: scrollPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
+
+/* Typing cursor blink */
+@keyframes cursorblink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+/* Reduced-motion: reveal all word/letter animated spans instantly */
+@media (prefers-reduced-motion: reduce) {
+  .will-change-transform,
+  .will-change-\[opacity\] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+

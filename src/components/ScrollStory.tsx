@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { StoryText } from './StoryText';
-import { HeroMicroUI } from './HeroMicroUI';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -153,9 +152,6 @@ export const ScrollStory: React.FC<ScrollStoryProps> = ({ onProgressUpdate }) =>
             style={{ opacity: 0.25 + 0.55 * expandP }}
           />
         </div>
-
-        {/* Hero Micro UI (Viewfinder HUD, Scene Counter, Ambient Gold Light) */}
-        <HeroMicroUI progress={masterProgress} />
 
         {/* Top Spacer */}
         <div className="h-16 sm:h-24 w-full z-20" />

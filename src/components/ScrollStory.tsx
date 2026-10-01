@@ -12,7 +12,9 @@ interface ScrollStoryProps {
 export const ScrollStory: React.FC<ScrollStoryProps> = ({ onProgressUpdate }) => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [masterProgress, setMasterProgress] = useState<number>(0);
+  const targetProgressRef = useRef<number>(0);
+  const visualProgressRef = useRef<number>(0);
+  const [visualProgress, setVisualProgress] = useState<number>(0);
   const [isMobile, setIsMobile] = useState<boolean>(false);
 
   useEffect(() => {
@@ -24,6 +26,8 @@ export const ScrollStory: React.FC<ScrollStoryProps> = ({ onProgressUpdate }) =>
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  const lastStateProgressRef = useRef<number>(0);
+
   useEffect(() => {
     const video = videoRef.current;
     const section = sectionRef.current;
@@ -33,7 +37,6 @@ export const ScrollStory: React.FC<ScrollStoryProps> = ({ onProgressUpdate }) =>
     video.pause();
     video.currentTime = 0;
 
-    let targetTime = 0;
     let animationFrameId: number | null = null;
 
     const handleLoadedMetadata = () => {
@@ -45,50 +48,65 @@ export const ScrollStory: React.FC<ScrollStoryProps> = ({ onProgressUpdate }) =>
       handleLoadedMetadata();
     }
 
-    // High performance RAF video frame handler optimized for mobile GPU decoders
-    const updateVideoFrame = () => {
-      if (video && video.duration) {
-        if (!video.seeking) {
-          const diff = Math.abs(video.currentTime - targetTime);
-          const minDiff = isMobile ? 0.05 : 0.015;
+    // Single high-performance RAF loop: interpolates visualProgress & updates video currentTime with exact settling
+    const updateLoop = () => {
+      const targetP = targetProgressRef.current;
+      const currentP = visualProgressRef.current;
+      const diff = targetP - currentP;
 
-          if (diff > minDiff) {
-            if ('fastSeek' in video && typeof (video as unknown as { fastSeek: (t: number) => void }).fastSeek === 'function') {
-              try {
-                (video as unknown as { fastSeek: (t: number) => void }).fastSeek(targetTime);
-              } catch {
-                video.currentTime = targetTime;
-              }
-            } else {
+      const isSettled = Math.abs(diff) < 0.00005;
+      if (isSettled) {
+        visualProgressRef.current = targetP;
+      } else {
+        visualProgressRef.current += diff * (isMobile ? 0.14 : 0.12);
+      }
+
+      const currentVisual = visualProgressRef.current;
+
+      // Throttle React state & parent callback updates to prevent unnecessary re-renders
+      if (Math.abs(currentVisual - lastStateProgressRef.current) > 0.0003 || isSettled) {
+        lastStateProgressRef.current = currentVisual;
+        setVisualProgress(currentVisual);
+        if (onProgressUpdate) {
+          onProgressUpdate(currentVisual);
+        }
+      }
+
+      // Threshold-filtered video currentTime update with guaranteed final target arrival
+      if (video && video.duration) {
+        const targetTime = currentVisual * video.duration;
+        const timeDiff = Math.abs(video.currentTime - targetTime);
+        const minTimeThreshold = isMobile ? 0.04 : 0.015;
+
+        if ((isSettled || timeDiff > minTimeThreshold) && timeDiff > 0.001 && !video.seeking) {
+          if ('fastSeek' in video && typeof (video as unknown as { fastSeek: (t: number) => void }).fastSeek === 'function') {
+            try {
+              (video as unknown as { fastSeek: (t: number) => void }).fastSeek(targetTime);
+            } catch {
               video.currentTime = targetTime;
             }
+          } else {
+            video.currentTime = targetTime;
           }
         }
       }
-      animationFrameId = requestAnimationFrame(updateVideoFrame);
+
+      animationFrameId = requestAnimationFrame(updateLoop);
     };
 
-    animationFrameId = requestAnimationFrame(updateVideoFrame);
+    animationFrameId = requestAnimationFrame(updateLoop);
 
-    // Master GSAP ScrollTrigger timeline
+    // Master GSAP ScrollTrigger timeline updating targetProgressRef
     const ctx = gsap.context(() => {
       ScrollTrigger.create({
         trigger: section,
         start: 'top top',
         end: 'bottom bottom',
-        scrub: isMobile ? 0.3 : 0.8,
+        scrub: isMobile ? 0.2 : 0.6,
         anticipatePin: 1,
         invalidateOnRefresh: true,
         onUpdate: (self) => {
-          const p = self.progress;
-          setMasterProgress(p);
-          if (onProgressUpdate) {
-            onProgressUpdate(p);
-          }
-
-          if (video && video.duration) {
-            targetTime = p * video.duration;
-          }
+          targetProgressRef.current = self.progress;
         },
       });
     }, section);
@@ -103,7 +121,7 @@ export const ScrollStory: React.FC<ScrollStoryProps> = ({ onProgressUpdate }) =>
   }, [onProgressUpdate, isMobile]);
 
   // Master Progress Expansion Calculation (0.00 -> 0.10)
-  const expandP = Math.min(1, masterProgress / 0.10);
+  const expandP = Math.min(1, visualProgress / 0.10);
 
   // Dynamic Video Wrapper Style for Split Hero -> Fullscreen Film Expansion
   const videoWrapperStyle: React.CSSProperties = isMobile
@@ -138,13 +156,17 @@ export const ScrollStory: React.FC<ScrollStoryProps> = ({ onProgressUpdate }) =>
         >
           <video
             ref={videoRef}
-            src="/assets/shadow web final_gwr_video_mvp.mp4"
+            poster="/assets/shadow-sozo-hero-poster.webp"
             className="w-full h-full object-cover object-center pointer-events-none select-none gpu-accelerated"
             muted
             playsInline
-            preload="auto"
+            preload="metadata"
             aria-hidden="true"
-          />
+          >
+            <source src="/assets/shadow-sozo-story-mobile.mp4" type="video/mp4" media="(max-width: 767px)" />
+            <source src="/assets/shadow-sozo-story.webm" type="video/webm" />
+            <source src="/assets/shadow-sozo-story.mp4" type="video/mp4" />
+          </video>
 
           {/* Video Overlay: Very subtle during split (0.25), darkens slightly as it expands to fullscreen */}
           <div
@@ -156,15 +178,15 @@ export const ScrollStory: React.FC<ScrollStoryProps> = ({ onProgressUpdate }) =>
         {/* Top Spacer */}
         <div className="h-16 sm:h-24 w-full z-20" />
 
-        {/* Story Text Overlay (passes normalized progress) */}
-        <StoryText progress={masterProgress} />
+        {/* Story Text Overlay (passes smoothed visual progress) */}
+        <StoryText progress={visualProgress} />
 
         {/* Bottom Progress Bar */}
         <div className="z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 pb-4 sm:pb-6 flex items-center justify-between pointer-events-none">
           <div className="w-full h-[1.5px] bg-white/10 relative overflow-hidden rounded-full max-w-xs mx-auto">
             <div
               className="absolute top-0 left-0 h-full bg-gold transition-all duration-75"
-              style={{ width: `${masterProgress * 100}%` }}
+              style={{ width: `${visualProgress * 100}%` }}
             />
           </div>
         </div>

@@ -23,8 +23,7 @@ export const HeroMicroUI: React.FC<HeroMicroUIProps> = ({ progress }) => {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
-  // HUD opacity fades away gracefully as user enters main story (0% -> 15%)
-  const hudOpacity = Math.max(0, 1 - progress / 0.15);
+
 
   return (
     <>
@@ -42,36 +41,7 @@ export const HeroMicroUI: React.FC<HeroMicroUIProps> = ({ progress }) => {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] sm:w-[650px] sm:h-[650px] rounded-full bg-[radial-gradient(circle,rgba(212,175,55,0.08)_0%,rgba(0,0,0,0)_70%)] filter blur-3xl pointer-events-none" />
       </div>
 
-      {/* ----------------------------------------------------
-          2. CINEMATIC VIEWFINDER HUD CORNERS (Fades on Scroll)
-         ---------------------------------------------------- */}
-      <div
-        className="pointer-events-none fixed inset-0 z-30 p-6 sm:p-10 flex flex-col justify-between transition-opacity duration-500 hidden sm:flex"
-        style={{ opacity: hudOpacity }}
-        aria-hidden="true"
-      >
-        {/* Top Viewfinder Markers */}
-        <div className="flex items-center justify-between font-mono text-[10px] tracking-[0.3em] text-silver/40">
-          <div className="flex items-center gap-3">
-            <span className="text-gold/60 font-bold">┌</span>
-            <span>[ 16:9 // DIGITAL FILM ]</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <span>[ SHADOW SOZO // DIGITAL ]</span>
-            <span className="text-gold/60 font-bold">┐</span>
-          </div>
-        </div>
-
-        {/* Bottom Viewfinder Markers */}
-        <div className="flex items-center justify-between font-mono text-[10px] tracking-[0.3em] text-silver/40">
-          <div>
-            <span className="text-gold/60 font-bold">└</span>
-          </div>
-          <div>
-            <span className="text-gold/60 font-bold">┘</span>
-          </div>
-        </div>
-      </div>
+      {/* Ambient background light */}
     </>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { calcNormalizedState } from '../types';
 
 interface StoryTextProps {
@@ -6,16 +6,6 @@ interface StoryTextProps {
 }
 
 export const StoryText: React.FC<StoryTextProps> = ({ progress }) => {
-  const [isMobile, setIsMobile] = useState<boolean>(false);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768 || 'ontouchstart' in window);
-    };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   // Helper to compute element style and active status cleanly
   const getSceneState = (enterStart: number, enterEnd: number, exitStart: number, exitEnd: number) => {
@@ -32,34 +22,18 @@ export const StoryText: React.FC<StoryTextProps> = ({ progress }) => {
     };
   };
 
-  // Scene 1 Split Hero -> Fullscreen Film Expansion Progress (0.00 -> 0.10)
-  const expandP = Math.min(1, progress / 0.10);
-  const scene1Opacity = Math.max(0, 1 - expandP);
-  const scene1Style: React.CSSProperties = {
-    opacity: scene1Opacity,
-    transform: isMobile
-      ? `translateY(${expandP * 50}px)`
-      : `translateX(${-expandP * 60}px)`,
-    filter: `blur(${expandP * 8}px)`,
-    pointerEvents: scene1Opacity > 0.1 ? 'auto' : 'none',
-    display: scene1Opacity > 0.01 ? 'flex' : 'none',
-  };
 
-  // The Gold Thread Line Width Calculation (Composition aware)
-  const threadLineWidth = isMobile
-    ? `calc(90px + ${expandP * 90}px)`
-    : `calc(160px + ${expandP * 180}px)`;
 
-  // Scene 2: 10% -> 25% (Everything starts in the shadow)
-  const scene2 = getSceneState(0.10, 0.13, 0.22, 0.25);
+  // Scene 2: 10% -> 25% (Everything starts in the shadow) — CRISP HOLD: 12% -> 23%
+  const scene2 = getSceneState(0.10, 0.12, 0.23, 0.25);
 
-  // Scene 3: 25% -> 42% (Turn vision into experience)
-  const scene3 = getSceneState(0.25, 0.28, 0.38, 0.42);
+  // Scene 3: 25% -> 42% (Turn vision into experience) — CRISP HOLD: 27% -> 40%
+  const scene3 = getSceneState(0.25, 0.27, 0.40, 0.42);
 
-  // Scene 4 Overall Base Container State (42% -> 62%)
-  const scene4Base = getSceneState(0.42, 0.45, 0.59, 0.62);
+  // Scene 4 Overall Base Container State (42% -> 62%) — CRISP HOLD: 44% -> 60%
+  const scene4Base = getSceneState(0.42, 0.44, 0.60, 0.62);
 
-  // Scene 4 Mathematical Item Emphasis (NO CSS duration delay)
+  // Scene 4 Mathematical Item Emphasis (Capped transition blur at 2px)
   const getScene4ItemState = (activeStart: number, activeEnd: number) => {
     if (progress < 0.42 || progress > 0.62) {
       return {
@@ -84,7 +58,7 @@ export const StoryText: React.FC<StoryTextProps> = ({ progress }) => {
     }
 
     const opacity = 0.35 + emphasis * 0.65;
-    const scale = 0.98 + emphasis * 0.04;
+    const scale = 0.98 + emphasis * 0.02;
     const blur = (1 - emphasis) * 2;
     const isGold = emphasis > 0.3;
 
@@ -103,70 +77,80 @@ export const StoryText: React.FC<StoryTextProps> = ({ progress }) => {
   const scene4Item2 = getScene4ItemState(0.49, 0.55);
   const scene4Item3 = getScene4ItemState(0.55, 0.60);
 
-  // Scene 5: 62% -> 78% (Don't stay where you started)
-  const scene5 = getSceneState(0.62, 0.65, 0.74, 0.78);
+  // Scene 5: 62% -> 78% (Don't stay where you started) — CRISP HOLD: 64% -> 76%
+  const scene5 = getSceneState(0.62, 0.64, 0.76, 0.78);
 
-  // Scene 6: 78% -> 92% (RISE -> GO HIGHER)
-  const scene6A = getSceneState(0.78, 0.80, 0.83, 0.85);
-  const scene6B = getSceneState(0.85, 0.87, 0.90, 0.92);
+  // Scene 6A (RISE): 78% -> 84.5% — CRISP HOLD: 79% -> 84%
+  const scene6A = getSceneState(0.78, 0.79, 0.84, 0.845);
 
-  // Scene 7: 92% -> 100% (FLY -> TO -> HIGH -> Final Logo Hold)
-  const scene7Fly = getSceneState(0.92, 0.935, 0.94, 0.95);
-  const scene7To = getSceneState(0.945, 0.955, 0.96, 0.968);
-  const scene7High = getSceneState(0.965, 0.975, 0.98, 0.985);
-  const scene7Finale = getSceneState(0.98, 0.99, 1.0, 1.0);
+  // INTENTIONAL CINEMATIC BREATHING PAUSE: 84.5% -> 86.0% (Pure video frame; zero text overlay)
+
+  // Scene 6B (GO HIGHER): 86% -> 92% — CRISP HOLD: 87% -> 91%
+  const scene6B = getSceneState(0.86, 0.87, 0.91, 0.92);
+
+  // Scene 7: 92% -> 100% (Single Coherent Final Reveal Composition) — CRISP HOLD: 95% -> 100%
+  const scene7Finale = getSceneState(0.92, 0.95, 1.0, 1.0);
 
   return (
     <div className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col items-center justify-center min-h-[60vh] select-none">
-      
+
       {/* ====================================================
-          SCENE 01: 0% -> 10% (Split Hero with The Gold Thread)
+          SCENE 01: 0% -> 10% (Cinematic Split Hero Opening)
          ==================================================== */}
-      {scene1Opacity > 0.01 && (
-        <div
-          style={scene1Style}
-          className="absolute inset-0 z-20 flex flex-col justify-center pointer-events-auto p-4 sm:p-8 md:p-12 text-left md:w-[38%]"
-        >
-          <div className="flex flex-col items-start gap-3 sm:gap-5 max-w-xl">
-            
-            {/* The Gold Thread + Editorial Chapter Marker */}
-            <div className="flex flex-col items-start gap-1.5 w-full mb-1">
-              <div className="flex items-center gap-3 w-full">
-                <span className="font-mono text-xs sm:text-sm tracking-[0.3em] text-gold font-bold shrink-0">
-                  01
-                </span>
-                {/* Thin Solid Metallic Gold Thread Line */}
-                <div
-                  style={{ width: threadLineWidth }}
-                  className="h-[1px] bg-gold/70 transition-none"
+      {progress <= 0.10 && (() => {
+        const expandP = Math.min(1, progress / 0.10);
+        const scene1Opacity = Math.max(0, 1 - expandP);
+        const scrollHintOpacity = Math.max(0, 1 - progress / 0.025);
+
+        return (
+          <div
+            style={{
+              opacity: scene1Opacity,
+              transform: `translateX(${-expandP * 50}px)`,
+              filter: `blur(${expandP * 2}px)`,
+              pointerEvents: scene1Opacity > 0.1 ? 'auto' : 'none',
+              display: scene1Opacity > 0.01 ? 'flex' : 'none',
+            }}
+            className="absolute inset-0 z-20 flex flex-col justify-center pointer-events-auto p-6 sm:p-10 md:p-14 text-left md:w-[40%] select-none"
+          >
+            <div className="flex flex-col items-start gap-4 sm:gap-6 max-w-xl">
+              {/* Official Supplied Logo Asset */}
+              <div className="relative">
+                <img
+                  src="/assets/logo.svg"
+                  alt="SHADOW SOZO Official Logo"
+                  width="320"
+                  height="160"
+                  className="h-12 w-auto sm:h-16 md:h-20 object-contain"
                 />
               </div>
 
-              <span className="font-mono text-[9px] sm:text-[10px] tracking-[0.35em] text-silver/80 uppercase">
-                CREATIVE TECHNOLOGY STUDIO
-              </span>
+              {/* Editorial Category Positioning Line (Natural multi-line wrapping) */}
+              <p className="font-mono text-xs sm:text-sm tracking-[0.25em] text-silver/80 uppercase font-medium leading-relaxed">
+                DIGITAL MARKETING <span className="text-gold font-bold">×</span>
+                <br />
+                SOFTWARE DEVELOPMENT
+              </p>
+
+              {/* Main Brand Hook Tagline */}
+              <p className="font-syne text-lg sm:text-2xl md:text-3xl font-bold tracking-[0.35em] text-gold uppercase mt-1">
+                FLY TO HIGH
+              </p>
+
+              {/* Interaction Scroll Hint */}
+              {scrollHintOpacity > 0.01 && (
+                <div
+                  className="flex items-center gap-2 font-mono text-[10px] sm:text-xs tracking-[0.3em] text-silver/60 uppercase mt-4 transition-opacity duration-300"
+                  style={{ opacity: scrollHintOpacity }}
+                >
+                  <span>SCROLL TO ENTER</span>
+                  <span className="text-gold animate-bounce">↓</span>
+                </div>
+              )}
             </div>
-
-            {/* Official Logo Asset */}
-            <div className="relative my-1">
-              <img
-                src="/assets/logo.svg"
-                alt="SHADOW SOZO Logo"
-                className="h-12 w-auto sm:h-16 md:h-20 object-contain drop-shadow-cinematic"
-              />
-            </div>
-
-            {/* Title & Brand Hook */}
-            <h1 className="font-display text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-[0.18em] text-white uppercase leading-none drop-shadow-cinematic">
-              SHADOW SOZO
-            </h1>
-
-            <p className="font-syne text-base sm:text-xl md:text-2xl font-extrabold tracking-[0.3em] text-gold-gradient uppercase drop-shadow-gold mt-1">
-              FLY TO HIGH
-            </p>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ====================================================
           SCENE 02: 10% -> 25% (Everything Starts in the Shadow)
@@ -175,9 +159,6 @@ export const StoryText: React.FC<StoryTextProps> = ({ progress }) => {
         style={scene2.style}
         className="flex flex-col items-center justify-center gap-3 sm:gap-5 transition-all duration-300"
       >
-        <span className="font-mono text-[10px] sm:text-xs tracking-[0.4em] text-gold uppercase px-3 py-1 rounded-full border border-gold/30 bg-black/50 backdrop-blur-md">
-          01 // ORIGIN
-        </span>
         <h2 className="font-display text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-extrabold tracking-[0.15em] sm:tracking-[0.2em] leading-tight text-white uppercase drop-shadow-cinematic">
           EVERYTHING
           <br />
@@ -192,9 +173,6 @@ export const StoryText: React.FC<StoryTextProps> = ({ progress }) => {
         style={scene3.style}
         className="flex flex-col items-center justify-center gap-3 sm:gap-5 transition-all duration-300"
       >
-        <span className="font-mono text-[10px] sm:text-xs tracking-[0.4em] text-gold uppercase px-3 py-1 rounded-full border border-gold/30 bg-black/50 backdrop-blur-md">
-          02 // VISION
-        </span>
         <h2 className="font-display text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-extrabold tracking-[0.15em] sm:tracking-[0.2em] leading-tight text-white uppercase drop-shadow-cinematic">
           TURN VISION
           <br />
@@ -209,13 +187,8 @@ export const StoryText: React.FC<StoryTextProps> = ({ progress }) => {
         style={scene4Base.style}
         className="flex flex-col items-center justify-center gap-6 sm:gap-8 w-full max-w-3xl min-h-[320px]"
       >
-        <span className="font-mono text-[10px] sm:text-xs tracking-[0.35em] text-silver/60 uppercase">
-          SHADOW SOZO // WHAT WE BUILD
-        </span>
-
         <div className="flex flex-col gap-5 sm:gap-7 w-full text-left">
           <div style={scene4Item1.style} className="border-l-2 pl-5 sm:pl-7">
-            <span className="font-mono text-xs sm:text-sm tracking-[0.3em] text-gold">01</span>
             <h3 className="font-display text-3xl sm:text-5xl md:text-6xl font-black text-white tracking-[0.12em] uppercase leading-none mt-1">
               DESIGN.
             </h3>
@@ -225,7 +198,6 @@ export const StoryText: React.FC<StoryTextProps> = ({ progress }) => {
           </div>
 
           <div style={scene4Item2.style} className="border-l-2 pl-5 sm:pl-7">
-            <span className="font-mono text-xs sm:text-sm tracking-[0.3em] text-gold">02</span>
             <h3 className="font-display text-3xl sm:text-5xl md:text-6xl font-black text-white tracking-[0.12em] uppercase leading-none mt-1">
               DEVELOP.
             </h3>
@@ -235,7 +207,6 @@ export const StoryText: React.FC<StoryTextProps> = ({ progress }) => {
           </div>
 
           <div style={scene4Item3.style} className="border-l-2 pl-5 sm:pl-7">
-            <span className="font-mono text-xs sm:text-sm tracking-[0.3em] text-gold">03</span>
             <h3 className="font-display text-3xl sm:text-5xl md:text-6xl font-black text-white tracking-[0.12em] uppercase leading-none mt-1">
               GROW.
             </h3>
@@ -247,15 +218,12 @@ export const StoryText: React.FC<StoryTextProps> = ({ progress }) => {
       </div>
 
       {/* ====================================================
-          SCENE 05: 62% -> 78% (Don't stay where you started)
+          SCENE 05: 62% -> 78% (Don't Stay Where You Started)
          ==================================================== */}
       <div
         style={scene5.style}
         className="flex flex-col items-center justify-center gap-3 sm:gap-5 transition-all duration-300"
       >
-        <span className="font-mono text-[10px] sm:text-xs tracking-[0.4em] text-gold uppercase px-3 py-1 rounded-full border border-gold/30 bg-black/50 backdrop-blur-md">
-          04 // EVOLUTION
-        </span>
         <h2 className="font-display text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-extrabold tracking-[0.15em] sm:tracking-[0.2em] leading-tight text-white uppercase drop-shadow-cinematic">
           DON'T STAY
           <br />
@@ -264,7 +232,7 @@ export const StoryText: React.FC<StoryTextProps> = ({ progress }) => {
       </div>
 
       {/* ====================================================
-          SCENE 06: 78% -> 92% (RISE -> GO HIGHER)
+          SCENE 06A: 78% -> 84.5% (RISE)
          ==================================================== */}
       <div style={scene6A.style} className="flex flex-col items-center justify-center transition-all duration-300">
         <h2 className="font-syne text-5xl sm:text-8xl md:text-9xl font-black tracking-[0.25em] text-white uppercase drop-shadow-cinematic">
@@ -272,6 +240,11 @@ export const StoryText: React.FC<StoryTextProps> = ({ progress }) => {
         </h2>
       </div>
 
+      {/* ✦ INTENTIONAL CINEMATIC BREATHING PAUSE (0.845 -> 0.860) ✦ */}
+
+      {/* ====================================================
+          SCENE 06B: 86.0% -> 92% (GO HIGHER)
+         ==================================================== */}
       <div style={scene6B.style} className="flex flex-col items-center justify-center transition-all duration-300">
         <h2 className="font-syne text-4xl sm:text-7xl md:text-9xl font-black tracking-[0.25em] text-gold-gradient uppercase drop-shadow-gold">
           GO HIGHER.
@@ -279,57 +252,38 @@ export const StoryText: React.FC<StoryTextProps> = ({ progress }) => {
       </div>
 
       {/* ====================================================
-          SCENE 07: 92% -> 100% (FLY -> TO -> HIGH Climax)
+          SCENE 07: 92% -> 100% (Single Coherent Final Reveal Composition)
          ==================================================== */}
-      <div style={scene7Fly.style} className="flex flex-col items-center justify-center transition-all duration-300">
-        <h2 className="font-syne text-6xl sm:text-9xl font-black tracking-[0.3em] text-white uppercase">
-          FLY
-        </h2>
-      </div>
-
-      <div style={scene7To.style} className="flex flex-col items-center justify-center transition-all duration-300">
-        <h2 className="font-syne text-6xl sm:text-9xl font-black tracking-[0.3em] text-silver-gradient uppercase">
-          TO
-        </h2>
-      </div>
-
-      <div style={scene7High.style} className="flex flex-col items-center justify-center transition-all duration-300">
-        <h2 className="font-syne text-7xl sm:text-[11rem] font-black tracking-[0.3em] text-gold-gradient uppercase drop-shadow-gold">
-          HIGH
-        </h2>
-      </div>
-
-      {/* FINAL FINALE HOLD STATE (Exact Logo + FLY TO HIGH) */}
       <div
         style={scene7Finale.style}
-        className="flex flex-col items-center justify-center gap-4 sm:gap-6 transition-all duration-500"
+        className="flex flex-col items-center justify-center gap-4 sm:gap-6 transition-all duration-500 select-none"
       >
-        <div className="relative mb-2">
+        {/* Official Logo Asset */}
+        <div className="relative mb-1">
           <img
             src="/assets/logo.svg"
             alt="SHADOW SOZO Official Logo"
-            className="h-20 w-auto sm:h-28 md:h-36 object-contain drop-shadow-gold"
+            width="320"
+            height="160"
+            className="h-16 w-auto sm:h-24 md:h-32 object-contain"
           />
         </div>
 
-        <p className="font-mono text-xs sm:text-sm tracking-[0.4em] text-silver/80 uppercase">
-          SHADOW SOZO
-        </p>
-
-        <h2 className="font-syne text-4xl sm:text-7xl md:text-9xl font-black tracking-[0.25em] text-gold-gradient uppercase drop-shadow-gold">
+        {/* Refined Tracked Editorial Subtitle */}
+        <h2 className="font-syne text-xl sm:text-3xl md:text-4xl font-semibold tracking-[0.35em] text-gold uppercase">
           FLY TO HIGH
         </h2>
 
-        <span className="font-mono text-[10px] sm:text-xs tracking-[0.35em] text-gold uppercase px-4 py-1 rounded-full border border-gold/30 bg-black/60">
-          ✦ CREATIVE TECHNOLOGY STUDIO
-        </span>
-
+        {/* Minimal Editorial Text CTA */}
         <div className="mt-4 sm:mt-6">
           <a
             href="#what-we-create"
-            className="inline-flex items-center gap-3 px-8 py-3.5 rounded-full border border-gold bg-gold/10 text-gold hover:bg-gold hover:text-black transition-all duration-300 text-xs sm:text-sm tracking-[0.25em] font-bold shadow-gold-glow"
+            className="group inline-flex flex-col items-center gap-1.5 focus:outline-none"
           >
-            START A PROJECT ↗
+            <span className="font-mono text-xs sm:text-sm tracking-[0.3em] text-silver/90 group-hover:text-gold transition-colors duration-300 uppercase font-medium">
+              START A PROJECT ↗
+            </span>
+            <div className="w-full h-[1px] bg-gold/50 group-hover:bg-gold transition-colors duration-300" />
           </a>
         </div>
       </div>

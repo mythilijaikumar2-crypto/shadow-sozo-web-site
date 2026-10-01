@@ -31,9 +31,9 @@ export function calcNormalizedState(
     return {
       active: false,
       opacity: 0,
-      translateY: 30,
-      blur: 10,
-      scale: 0.96,
+      translateY: 16,
+      blur: 2,
+      scale: 0.98,
       pointerEvents: 'none' as const,
     };
   }
@@ -44,23 +44,22 @@ export function calcNormalizedState(
   let scale = 1;
 
   if (progress < enterEnd) {
-    const p = Math.max(0, Math.min(1, (progress - enterStart) / (enterEnd - enterStart)));
+    const p = Math.max(0, Math.min(1, (progress - enterStart) / Math.max(0.0001, enterEnd - enterStart)));
     opacity = p;
-    translateY = (1 - p) * 30;
-    blur = (1 - p) * 10;
-    scale = 0.96 + p * 0.04;
+    translateY = (1 - p) * 16;
+    blur = (1 - p) * 2;
+    scale = 0.98 + p * 0.02;
   } else if (progress > exitStart) {
-    const p = Math.max(0, Math.min(1, (progress - exitStart) / (exitEnd - exitStart)));
+    const p = Math.max(0, Math.min(1, (progress - exitStart) / Math.max(0.0001, exitEnd - exitStart)));
     opacity = 1 - p;
-    translateY = -p * 25;
-    blur = p * 8;
-    scale = 1 - p * 0.03;
+    translateY = -p * 12;
+    blur = p * 2;
+    scale = 1 - p * 0.02;
   } else {
-    const mid = (progress - enterEnd) / (exitStart - enterEnd);
     opacity = 1;
     translateY = 0;
     blur = 0;
-    scale = 1 + mid * 0.02;
+    scale = 1;
   }
 
   return {

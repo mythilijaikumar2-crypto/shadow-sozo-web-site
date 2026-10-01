@@ -24,7 +24,7 @@ export const LenisProvider: React.FC<LenisProviderProps> = ({ children }) => {
       smoothWheel: true,
       wheelMultiplier: 1.0,
       touchMultiplier: 1.0,
-      syncTouch: true,
+      syncTouch: false,
     });
 
     lenis.on('scroll', ScrollTrigger.update);

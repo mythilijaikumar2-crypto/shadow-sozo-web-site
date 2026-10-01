@@ -166,8 +166,7 @@ export const AboutSection: React.FC = () => {
         </div>
 
         {/* 9. FINAL LOGO REVEAL & FOOTER CONTAINER */}
-        <footer
-          id="contact"
+        <div
           className="w-full flex flex-col items-center text-center pt-24 pb-12 border-t border-white/10 gap-8"
         >
           {/* Official Logo Asset */}
@@ -199,7 +198,7 @@ export const AboutSection: React.FC = () => {
             <span>© SHADOW SOZO</span>
             <span>DESIGN. DEVELOP. GROW.</span>
           </div>
-        </footer>
+        </div>
 
       </div>
     </section>

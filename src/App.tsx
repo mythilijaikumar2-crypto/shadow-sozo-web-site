@@ -5,6 +5,7 @@ import { ScrollStory } from './components/ScrollStory';
 import { NextSection } from './components/NextSection';
 import { ServicesSection } from './components/ServicesSection';
 import { AboutSection } from './components/AboutSection';
+import { ContactSection } from './components/ContactSection';
 
 export function App() {
   const [masterProgress, setMasterProgress] = useState<number>(0);
@@ -21,6 +22,7 @@ export function App() {
           <NextSection />
           <ServicesSection />
           <AboutSection />
+          <ContactSection />
         </main>
       </div>
     </LenisProvider>

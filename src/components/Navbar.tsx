@@ -107,8 +107,8 @@ export const Navbar: React.FC<NavbarProps> = ({ progress = 0 }) => {
             {/* SINGLE TOP RIGHT CONTROLS */}
             <div className="flex items-center gap-5 sm:gap-8">
               <a
-                href="#what-we-create"
-                onClick={(e) => handleLinkClick(e, '#what-we-create')}
+                href="#contact"
+                onClick={(e) => handleLinkClick(e, '#contact')}
                 className="font-mono text-xs sm:text-sm tracking-[0.25em] text-silver/80 hover:text-gold transition-colors duration-300 flex items-center gap-1.5 focus:outline-none"
               >
                 <span>LET'S TALK</span>

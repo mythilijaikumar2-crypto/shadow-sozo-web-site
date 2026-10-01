@@ -72,3 +72,16 @@ export function calcNormalizedState(
     pointerEvents: opacity > 0.5 ? ('auto' as const) : ('none' as const),
   };
 }
+
+/**
+ * Scene Indicator Helper (01 / 07 -> 07 / 07)
+ */
+export function getSceneNumberStr(progress: number): { current: string; label: string } {
+  if (progress < 0.14) return { current: '01 / 07', label: 'ORIGIN' };
+  if (progress < 0.28) return { current: '02 / 07', label: 'SHADOW' };
+  if (progress < 0.42) return { current: '03 / 07', label: 'VISION' };
+  if (progress < 0.57) return { current: '04 / 07', label: 'CRAFT' };
+  if (progress < 0.71) return { current: '05 / 07', label: 'EVOLUTION' };
+  if (progress < 0.86) return { current: '06 / 07', label: 'RISE' };
+  return { current: '07 / 07', label: 'FLY TO HIGH' };
+}

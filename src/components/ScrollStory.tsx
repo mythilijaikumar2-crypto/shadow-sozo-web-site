@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { StoryText } from './StoryText';
+import { HeroMicroUI } from './HeroMicroUI';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -39,7 +40,6 @@ export const ScrollStory: React.FC<ScrollStoryProps> = ({ onProgressUpdate }) =>
     // High performance RAF video frame handler optimized for mobile GPU decoders
     const updateVideoFrame = () => {
       if (video && video.duration) {
-        // Prevent decoder backlog if mobile browser video decoder is currently seeking
         if (!video.seeking) {
           const diff = Math.abs(video.currentTime - targetTime);
           const minDiff = isMobile ? 0.05 : 0.015;
@@ -62,13 +62,13 @@ export const ScrollStory: React.FC<ScrollStoryProps> = ({ onProgressUpdate }) =>
 
     animationFrameId = requestAnimationFrame(updateVideoFrame);
 
-    // Master GSAP ScrollTrigger timeline with mobile touch scrub tuning
+    // Master GSAP ScrollTrigger timeline
     const ctx = gsap.context(() => {
       ScrollTrigger.create({
         trigger: section,
         start: 'top top',
         end: 'bottom bottom',
-        scrub: isMobile ? 0.3 : 0.8, // Faster scrub response on mobile touch
+        scrub: isMobile ? 0.3 : 0.8,
         anticipatePin: 1,
         invalidateOnRefresh: true,
         onUpdate: (self) => {
@@ -117,6 +117,9 @@ export const ScrollStory: React.FC<ScrollStoryProps> = ({ onProgressUpdate }) =>
         {/* Cinematic Vignette & Dark Overlays */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/35 to-black/95 pointer-events-none z-10" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.65)_100%)] pointer-events-none z-10" />
+
+        {/* Hero Micro UI (HUD Corners, Ambient Light, Scene Counter, Scroll Cue) */}
+        <HeroMicroUI progress={masterProgress} />
 
         {/* Top Spacer */}
         <div className="h-16 sm:h-24 w-full z-20" />

@@ -1,5 +1,5 @@
 import React from 'react';
-import { calcNormalizedState } from '../types';
+import { calcNormalizedState } from '../types.ts';
 
 interface StoryTextProps {
   progress: number; // Normalized master progress 0.0 -> 1.0

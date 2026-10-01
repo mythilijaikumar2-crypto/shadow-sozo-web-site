@@ -1,4 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 const PROJECT_TYPES = [
   'DIGITAL MARKETING',
@@ -19,6 +23,9 @@ const BUDGET_RANGES = [
 ];
 
 export const ContactSection: React.FC = () => {
+  const sectionRef = useRef<HTMLElement>(null);
+  const animRefs = useRef<(HTMLElement | null)[]>([]);
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -28,6 +35,51 @@ export const ContactSection: React.FC = () => {
 
   const [formStatus, setFormStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const [errors, setErrors] = useState<{ name?: string; email?: string; type?: string; message?: string }>({});
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReduced) {
+      animRefs.current.forEach(el => {
+        if (el) {
+          el.style.opacity = '1';
+          el.style.transform = 'none';
+        }
+      });
+      return;
+    }
+
+    const ctx = gsap.context(() => {
+      animRefs.current.forEach(el => {
+        if (!el) return;
+        gsap.fromTo(
+          el,
+          { opacity: 0, y: 24 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.85,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: el,
+              start: 'top 85%',
+              toggleActions: 'play none none reverse',
+            },
+          }
+        );
+      });
+    }, section);
+
+    return () => ctx.revert();
+  }, []);
+
+  const addRef = (el: HTMLElement | null) => {
+    if (el && !animRefs.current.includes(el)) {
+      animRefs.current.push(el);
+    }
+  };
 
   const toggleProjectType = (type: string) => {
     setSelectedTypes((prev) =>
@@ -63,12 +115,13 @@ export const ContactSection: React.FC = () => {
   return (
     <section
       id="contact"
+      ref={sectionRef}
       className="relative z-30 w-full min-h-screen bg-black text-white py-32 px-6 sm:px-12 lg:px-24 flex flex-col justify-between items-center overflow-hidden border-t border-white/10"
     >
       <div className="max-w-6xl mx-auto w-full flex flex-col gap-28 sm:gap-40">
         
         {/* 2. OPENING SECTION */}
-        <header className="flex flex-col items-start gap-6">
+        <header ref={addRef} className="flex flex-col items-start gap-6">
           <div className="flex flex-col gap-2">
             <span className="font-mono text-xs sm:text-sm tracking-[0.3em] text-gold font-medium uppercase">
               05
@@ -104,7 +157,7 @@ export const ContactSection: React.FC = () => {
         </header>
 
         {/* 4. CONTACT FORM & FORM STATES */}
-        <div className="w-full flex flex-col items-start gap-12">
+        <div ref={addRef} className="w-full flex flex-col items-start gap-12">
           {formStatus === 'success' ? (
             <div className="w-full py-16 px-8 sm:px-12 border border-gold/40 bg-black/90 flex flex-col items-start gap-6 transition-all duration-500">
               <span className="font-mono text-xs sm:text-sm tracking-[0.3em] text-gold uppercase font-semibold">
@@ -199,7 +252,7 @@ export const ContactSection: React.FC = () => {
                       if (errors.name) setErrors((prev) => ({ ...prev, name: undefined }));
                     }}
                     placeholder="ENTER YOUR NAME"
-                    className="w-full bg-transparent border-b border-white/20 focus:border-gold py-3 text-white font-mono text-sm sm:text-base tracking-[0.15em] placeholder:text-silver/30 focus:outline-none transition-colors duration-300"
+                    className="w-full bg-transparent border-b border-white/20 focus:border-gold py-3 text-white font-mono text-sm sm:text-base tracking-[0.15em] placeholder:text-silver/50 focus:outline-none transition-colors duration-300"
                     required
                   />
                   {errors.name && (
@@ -221,7 +274,7 @@ export const ContactSection: React.FC = () => {
                       if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }));
                     }}
                     placeholder="NAME@DOMAIN.COM"
-                    className="w-full bg-transparent border-b border-white/20 focus:border-gold py-3 text-white font-mono text-sm sm:text-base tracking-[0.15em] placeholder:text-silver/30 focus:outline-none transition-colors duration-300"
+                    className="w-full bg-transparent border-b border-white/20 focus:border-gold py-3 text-white font-mono text-sm sm:text-base tracking-[0.15em] placeholder:text-silver/50 focus:outline-none transition-colors duration-300"
                     required
                   />
                   {errors.email && (
@@ -240,7 +293,7 @@ export const ContactSection: React.FC = () => {
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="+91 98765 43210"
-                    className="w-full bg-transparent border-b border-white/20 focus:border-gold py-3 text-white font-mono text-sm sm:text-base tracking-[0.15em] placeholder:text-silver/30 focus:outline-none transition-colors duration-300"
+                    className="w-full bg-transparent border-b border-white/20 focus:border-gold py-3 text-white font-mono text-sm sm:text-base tracking-[0.15em] placeholder:text-silver/50 focus:outline-none transition-colors duration-300"
                   />
                 </div>
               </div>
@@ -259,7 +312,7 @@ export const ContactSection: React.FC = () => {
                     if (errors.message) setErrors((prev) => ({ ...prev, message: undefined }));
                   }}
                   placeholder="WHAT ARE YOU TRYING TO BUILD, GROW OR CHANGE?"
-                  className="w-full bg-transparent border-b border-white/20 focus:border-gold py-3 text-white font-mono text-sm sm:text-base tracking-[0.15em] placeholder:text-silver/30 focus:outline-none transition-colors duration-300 min-h-[140px] md:min-h-[180px] resize-none"
+                  className="w-full bg-transparent border-b border-white/20 focus:border-gold py-3 text-white font-mono text-sm sm:text-base tracking-[0.15em] placeholder:text-silver/50 focus:outline-none transition-colors duration-300 min-h-[140px] md:min-h-[180px] resize-none"
                   required
                 />
                 {errors.message && (
@@ -270,7 +323,7 @@ export const ContactSection: React.FC = () => {
               {/* 7. BUDGET SELECTOR */}
               <fieldset className="flex flex-col gap-4 w-full">
                 <legend className="font-mono text-xs sm:text-sm tracking-[0.25em] text-silver/90 uppercase font-semibold mb-2">
-                  PROJECT RANGE <span className="text-silver/50 font-normal">(OPTIONAL)</span>
+                  PROJECT RANGE <span className="text-silver/60 font-normal">(OPTIONAL)</span>
                 </legend>
                 <div className="flex flex-wrap gap-3 w-full">
                   {BUDGET_RANGES.map((range) => {
@@ -316,7 +369,7 @@ export const ContactSection: React.FC = () => {
         </div>
 
         {/* 9 & 10. DIRECT CONTACT OPTIONS */}
-        <div className="flex flex-col items-start gap-12 border-t border-white/10 pt-20 w-full">
+        <div ref={addRef} className="flex flex-col items-start gap-12 border-t border-white/10 pt-20 w-full">
           <div className="flex flex-col gap-2">
             <span className="font-mono text-xs sm:text-sm tracking-[0.3em] text-gold font-medium uppercase">
               DIRECT CONTACT
@@ -374,7 +427,7 @@ export const ContactSection: React.FC = () => {
         </div>
 
         {/* 15. FINAL BRAND STATEMENT */}
-        <div className="flex flex-col items-center text-center gap-8 py-16 border-t border-white/10 w-full">
+        <div ref={addRef} className="flex flex-col items-center text-center gap-8 py-16 border-t border-white/10 w-full">
           <h2
             className="font-display font-black tracking-[0.15em] text-white uppercase leading-tight"
             style={{
@@ -400,7 +453,7 @@ export const ContactSection: React.FC = () => {
         </div>
 
         {/* 16. FINAL LOGO REVEAL & FOOTER */}
-        <footer className="w-full flex flex-col items-center text-center pt-24 pb-12 border-t border-white/10 gap-8">
+        <footer ref={addRef} className="w-full flex flex-col items-center text-center pt-24 pb-12 border-t border-white/10 gap-8">
           <div className="relative mb-2">
             <img
               src="/assets/logo.svg"

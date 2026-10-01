@@ -1,4 +1,8 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 interface Principle {
   number: string;
@@ -25,15 +29,64 @@ const PRINCIPLES: Principle[] = [
 ];
 
 export const AboutSection: React.FC = () => {
+  const sectionRef = useRef<HTMLElement>(null);
+  const animRefs = useRef<(HTMLElement | null)[]>([]);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReduced) {
+      animRefs.current.forEach(el => {
+        if (el) {
+          el.style.opacity = '1';
+          el.style.transform = 'none';
+        }
+      });
+      return;
+    }
+
+    const ctx = gsap.context(() => {
+      animRefs.current.forEach(el => {
+        if (!el) return;
+        gsap.fromTo(
+          el,
+          { opacity: 0, y: 24 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.9,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: el,
+              start: 'top 85%',
+              toggleActions: 'play none none reverse',
+            },
+          }
+        );
+      });
+    }, section);
+
+    return () => ctx.revert();
+  }, []);
+
+  const addRef = (el: HTMLElement | null) => {
+    if (el && !animRefs.current.includes(el)) {
+      animRefs.current.push(el);
+    }
+  };
+
   return (
     <section
       id="about"
+      ref={sectionRef}
       className="relative z-30 w-full min-h-screen bg-black text-white py-32 px-6 sm:px-12 lg:px-24 flex flex-col justify-between items-center overflow-hidden border-t border-white/10"
     >
       <div className="max-w-6xl mx-auto w-full flex flex-col gap-32 sm:gap-44">
         
         {/* 2. ABOUT PAGE OPENING */}
-        <header className="flex flex-col items-start gap-6">
+        <header ref={addRef} className="flex flex-col items-start gap-6">
           <div className="flex flex-col gap-2">
             <span className="font-mono text-xs sm:text-sm tracking-[0.3em] text-gold font-medium uppercase">
               04
@@ -56,29 +109,29 @@ export const AboutSection: React.FC = () => {
               <br />
               <span className="text-gold font-black">THE SHADOW.</span>
             </h2>
-            <p className="font-mono text-xs sm:text-sm tracking-[0.25em] text-silver/70 uppercase max-w-xl mt-6 leading-relaxed">
+            <p className="font-mono text-xs sm:text-sm tracking-[0.25em] text-silver/85 uppercase max-w-xl mt-6 leading-relaxed">
               WE TURN IDEAS INTO DIGITAL EXPERIENCES, BRANDS AND TECHNOLOGY THAT MOVE FORWARD.
             </p>
           </div>
         </header>
 
         {/* 3. WHO WE ARE */}
-        <div className="flex flex-col items-start gap-6 border-l border-gold/40 pl-6 sm:pl-10 py-2">
-          <span className="font-mono text-xs sm:text-sm tracking-[0.3em] text-silver/60 uppercase font-medium">
+        <div ref={addRef} className="flex flex-col items-start gap-6 border-l border-gold/40 pl-6 sm:pl-10 py-2">
+          <span className="font-mono text-xs sm:text-sm tracking-[0.3em] text-silver/80 uppercase font-medium">
             WHO WE ARE
           </span>
           <h3 className="font-display text-2xl sm:text-4xl lg:text-5xl font-light tracking-[0.18em] text-white uppercase leading-tight max-w-4xl">
             SHADOW SOZO IS A DIGITAL MARKETING{' '}
             <span className="text-gold font-bold">×</span> SOFTWARE DEVELOPMENT STUDIO.
           </h3>
-          <p className="font-mono text-xs sm:text-sm tracking-[0.2em] text-silver/70 max-w-2xl leading-relaxed mt-2">
+          <p className="font-mono text-xs sm:text-sm tracking-[0.2em] text-silver/80 max-w-2xl leading-relaxed mt-2">
             We combine creative thinking, technology and digital growth to build digital experiences that move brands forward.
           </p>
         </div>
 
         {/* 5. OUR PHILOSOPHY */}
-        <div className="flex flex-col items-start gap-6 w-full">
-          <span className="font-mono text-xs sm:text-sm tracking-[0.3em] text-silver/60 uppercase font-medium">
+        <div ref={addRef} className="flex flex-col items-start gap-6 w-full">
+          <span className="font-mono text-xs sm:text-sm tracking-[0.3em] text-silver/80 uppercase font-medium">
             OUR PHILOSOPHY
           </span>
           <h3
@@ -96,8 +149,8 @@ export const AboutSection: React.FC = () => {
         </div>
 
         {/* 6. OUR APPROACH */}
-        <div className="flex flex-col items-start gap-12 w-full">
-          <span className="font-mono text-xs sm:text-sm tracking-[0.3em] text-silver/60 uppercase font-medium">
+        <div ref={addRef} className="flex flex-col items-start gap-12 w-full">
+          <span className="font-mono text-xs sm:text-sm tracking-[0.3em] text-silver/80 uppercase font-medium">
             OUR APPROACH
           </span>
 
@@ -113,7 +166,7 @@ export const AboutSection: React.FC = () => {
                 <h4 className="font-display text-xl sm:text-2xl font-bold tracking-[0.15em] text-white uppercase">
                   {principle.title}
                 </h4>
-                <p className="font-mono text-xs sm:text-sm tracking-[0.2em] text-silver/70 uppercase leading-relaxed">
+                <p className="font-mono text-xs sm:text-sm tracking-[0.2em] text-silver/80 uppercase leading-relaxed">
                   {principle.description}
                 </p>
               </div>
@@ -122,11 +175,11 @@ export const AboutSection: React.FC = () => {
         </div>
 
         {/* 7. BRAND PHILOSOPHY — FLY TO HIGH */}
-        <div className="flex flex-col items-center text-center gap-8 py-12 w-full">
-          <span className="font-mono text-xs sm:text-sm tracking-[0.3em] text-silver/60 uppercase font-medium">
+        <div ref={addRef} className="flex flex-col items-center text-center gap-8 py-12 w-full">
+          <span className="font-mono text-xs sm:text-sm tracking-[0.3em] text-silver/80 uppercase font-medium">
             BRAND PHILOSOPHY
           </span>
-          <p className="font-mono text-xs sm:text-sm tracking-[0.25em] text-silver/80 uppercase max-w-xl leading-relaxed">
+          <p className="font-mono text-xs sm:text-sm tracking-[0.25em] text-silver/85 uppercase max-w-xl leading-relaxed">
             NOT A DESTINATION. A DIRECTION. A MINDSET TO KEEP MOVING BEYOND WHERE YOU STARTED.
           </p>
 
@@ -145,7 +198,7 @@ export const AboutSection: React.FC = () => {
         </div>
 
         {/* 8. FINAL MANIFESTO */}
-        <div className="flex flex-col items-start gap-8 border-t border-white/10 pt-20 w-full">
+        <div ref={addRef} className="flex flex-col items-start gap-8 border-t border-white/10 pt-20 w-full">
           <h3 className="font-display text-2xl sm:text-4xl lg:text-5xl font-light tracking-[0.2em] text-white/90 uppercase leading-relaxed max-w-4xl">
             WE BELIEVE GREAT DIGITAL WORK SHOULD NOT JUST LOOK GOOD.
             <br />
@@ -167,6 +220,7 @@ export const AboutSection: React.FC = () => {
 
         {/* 9. FINAL LOGO REVEAL & FOOTER CONTAINER */}
         <div
+          ref={addRef}
           className="w-full flex flex-col items-center text-center pt-24 pb-12 border-t border-white/10 gap-8"
         >
           {/* Official Logo Asset */}
@@ -180,7 +234,7 @@ export const AboutSection: React.FC = () => {
             />
           </div>
 
-          <p className="font-mono text-xs sm:text-sm tracking-[0.25em] text-silver/80 uppercase">
+          <p className="font-mono text-xs sm:text-sm tracking-[0.25em] text-silver/85 uppercase">
             DIGITAL MARKETING <span className="text-gold font-bold">×</span> SOFTWARE DEVELOPMENT
           </p>
 
@@ -194,7 +248,7 @@ export const AboutSection: React.FC = () => {
             </span>
           </a>
 
-          <div className="w-full max-w-6xl pt-12 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-silver/50 font-mono text-xs tracking-[0.2em] uppercase">
+          <div className="w-full max-w-6xl pt-12 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-silver/60 font-mono text-xs tracking-[0.2em] uppercase">
             <span>© SHADOW SOZO</span>
             <span>DESIGN. DEVELOP. GROW.</span>
           </div>
@@ -204,3 +258,4 @@ export const AboutSection: React.FC = () => {
     </section>
   );
 };
+

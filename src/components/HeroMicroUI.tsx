@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { getSceneNumberStr } from '../types';
 
 interface HeroMicroUIProps {
   progress: number;
@@ -7,7 +6,6 @@ interface HeroMicroUIProps {
 
 export const HeroMicroUI: React.FC<HeroMicroUIProps> = ({ progress }) => {
   const [mouseOffset, setMouseOffset] = useState({ x: 0, y: 0 });
-  const sceneInfo = getSceneNumberStr(progress);
 
   // Subtle desktop mouse movement tracking for ambient gold light
   useEffect(() => {
@@ -73,14 +71,6 @@ export const HeroMicroUI: React.FC<HeroMicroUIProps> = ({ progress }) => {
             <span className="text-gold/60 font-bold">┘</span>
           </div>
         </div>
-      </div>
-
-      {/* ----------------------------------------------------
-          3. SCENE INDICATOR (Bottom Right - Synchronized)
-         ---------------------------------------------------- */}
-      <div className="fixed bottom-6 right-6 sm:bottom-8 sm:right-10 z-30 pointer-events-none flex items-center gap-2 font-mono text-[10px] sm:text-xs tracking-[0.25em] text-silver/60 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
-        <span className="text-gold font-bold">{sceneInfo.current}</span>
-        <span className="text-silver/40 hidden sm:inline">// {sceneInfo.label}</span>
       </div>
     </>
   );

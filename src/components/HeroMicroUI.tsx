@@ -27,8 +27,6 @@ export const HeroMicroUI: React.FC<HeroMicroUIProps> = ({ progress }) => {
 
   // HUD opacity fades away gracefully as user enters main story (0% -> 15%)
   const hudOpacity = Math.max(0, 1 - progress / 0.15);
-  // Hero scroll prompt opacity fades out quickly (0% -> 8%)
-  const scrollPromptOpacity = Math.max(0, 1 - progress / 0.08);
 
   return (
     <>
@@ -78,25 +76,7 @@ export const HeroMicroUI: React.FC<HeroMicroUIProps> = ({ progress }) => {
       </div>
 
       {/* ----------------------------------------------------
-          3. SCROLL INDICATOR (Bottom Center - Fades Quickly)
-         ---------------------------------------------------- */}
-      {scrollPromptOpacity > 0.01 && (
-        <div
-          className="fixed bottom-8 sm:bottom-10 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-2 pointer-events-none transition-opacity duration-300"
-          style={{ opacity: scrollPromptOpacity }}
-        >
-          <div className="flex items-center gap-2 font-mono text-[10px] sm:text-xs tracking-[0.35em] text-silver/80 uppercase">
-            <span>SCROLL TO ENTER</span>
-          </div>
-          {/* Subtle Thin Gold Ring Indicator */}
-          <div className="w-5 h-8 rounded-full border border-gold/40 flex items-start justify-center p-1.5 shadow-gold-glow">
-            <div className="w-1 h-2 rounded-full bg-gold animate-scroll-pulse" />
-          </div>
-        </div>
-      )}
-
-      {/* ----------------------------------------------------
-          4. SCENE INDICATOR (Bottom Right - Synchronized)
+          3. SCENE INDICATOR (Bottom Right - Synchronized)
          ---------------------------------------------------- */}
       <div className="fixed bottom-6 right-6 sm:bottom-8 sm:right-10 z-30 pointer-events-none flex items-center gap-2 font-mono text-[10px] sm:text-xs tracking-[0.25em] text-silver/60 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
         <span className="text-gold font-bold">{sceneInfo.current}</span>

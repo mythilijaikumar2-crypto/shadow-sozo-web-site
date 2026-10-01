@@ -68,9 +68,6 @@ export const Navbar: React.FC<NavbarProps> = ({ progress = 0 }) => {
                 alt="SHADOW SOZO Logo"
                 className="h-7 w-auto sm:h-9 object-contain transition-transform duration-300 group-hover:scale-105"
               />
-              <span className="font-display tracking-[0.25em] text-xs sm:text-sm font-bold text-white group-hover:text-gold transition-colors duration-300">
-                SHADOW SOZO
-              </span>
             </a>
 
             {/* Desktop Navigation */}

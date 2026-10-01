@@ -150,16 +150,6 @@ export const StoryText: React.FC<StoryTextProps> = ({ progress }) => {
             <p className="font-syne text-base sm:text-xl md:text-2xl font-extrabold tracking-[0.3em] text-gold-gradient uppercase drop-shadow-gold mt-1">
               FLY TO HIGH
             </p>
-
-            {/* Scroll Cue */}
-            <div className="mt-4 sm:mt-6 flex items-center gap-3 animate-scroll-pulse">
-              <span className="font-mono text-[10px] sm:text-xs tracking-[0.35em] text-silver/80 uppercase">
-                SCROLL TO ENTER
-              </span>
-              <svg className="w-3.5 h-3.5 text-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-              </svg>
-            </div>
           </div>
         </div>
       )}

@@ -383,10 +383,15 @@ export const ServicesSection: React.FC = () => {
         'min-h-[680vh] sm:min-h-[580vh] lg:min-h-[520vh]',
       ].join(' ')}
     >
-      {/* ── STICKY STAGE ────────────────────────────────────── */}
-      <div className="sticky top-0 h-screen w-full flex items-center justify-center pointer-events-none">
-        {/* Vertical indicator — desktop only */}
-        <aside className="absolute right-6 sm:right-10 top-1/2 -translate-y-1/2 hidden sm:flex flex-col gap-4 z-20">
+      {/* ── INDICATOR: zero-height sticky — no blank space in flow ── */}
+      <div
+        className="sticky top-0 w-full pointer-events-none hidden sm:block"
+        style={{ height: 0, overflow: 'visible', zIndex: 20 }}
+      >
+        <aside
+          className="absolute right-6 sm:right-10 flex flex-col gap-4"
+          style={{ top: '50vh', transform: 'translateY(-50%)' }}
+        >
           {SERVICES.map((s, i) => (
             <span
               key={s.id}
@@ -401,10 +406,6 @@ export const ServicesSection: React.FC = () => {
           ))}
         </aside>
       </div>
-
-      {/* ── SCROLLABLE CONTENT ──────────────────────────────── */}
-      {/* All content is position:sticky via a second sticky layer */}
-      <div className="absolute inset-0 pointer-events-none" aria-hidden="true" />
 
       {/* Content wrapper — real content stacked in normal flow */}
       <div className="relative z-10 max-w-6xl mx-auto w-full px-6 sm:px-12 lg:px-24 flex flex-col gap-0 pointer-events-auto">

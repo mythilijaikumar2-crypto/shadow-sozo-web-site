@@ -1,0 +1,117 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html {
+    scroll-behavior: auto;
+    background-color: #000000;
+    color: #ffffff;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  body {
+    background-color: #000000;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    width: 100vw;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Custom Typography & Utility Styles */
+.font-display {
+  font-family: 'Cinzel', serif;
+}
+
+.font-syne {
+  font-family: 'Syne', sans-serif;
+}
+
+/* Metallic Text Gradients */
+.text-gold-gradient {
+  background: linear-gradient(135deg, #FFF6D6 0%, #D4AF37 45%, #AA820A 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-silver-gradient {
+  background: linear-gradient(135deg, #FFFFFF 0%, #CBD5E1 50%, #94A3B8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gold-metallic {
+  background: linear-gradient(180deg, #FFFFFF 0%, #E6C667 40%, #D4AF37 70%, #8A6D15 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Metallic Borders */
+.border-gold-subtle {
+  border-color: rgba(212, 175, 55, 0.25);
+}
+
+.border-silver-subtle {
+  border-color: rgba(203, 213, 225, 0.15);
+}
+
+/* Cinematic Shadows & Glows */
+.shadow-gold-glow {
+  box-shadow: 0 0 40px rgba(212, 175, 55, 0.15);
+}
+
+.drop-shadow-gold {
+  filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.4));
+}
+
+.drop-shadow-cinematic {
+  filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.8));
+}
+
+/* Smooth Video Hardware Acceleration */
+video {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Hide scrollbars for ultra minimal aesthetic */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #000000;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #222222;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #D4AF37;
+}
+
+/* Keyframe Pulsing for Scroll Indicator */
+@keyframes scrollPulse {
+  0%, 100% {
+    transform: translateY(0);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translateY(8px);
+    opacity: 0.3;
+  }
+}
+
+.animate-scroll-pulse {
+  animation: scrollPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
